@@ -95,7 +95,7 @@ class TagihanUktDataTable extends DataTable
                 ' : '';
 
                 $deleteBtn = $canDelete ? '
-                    <form action="' . route('tagihan-ukts.destroy', $row->id) . '" method="POST" class="d-inline" onsubmit="return confirm(\'Apakah Anda yakin ingin menghapus tagihan UKT ini?\')">
+                    <form action="' . route('tagihan-ukts.destroy', $row->id) . '" method="POST" class="d-inline form-delete" data-confirm="Apakah Anda yakin ingin menghapus tagihan UKT ini?">
                         ' . csrf_field() . '
                         ' . method_field('DELETE') . '
                         <button type="submit" class="btn btn-danger btn-sm" title="Hapus Tagihan">

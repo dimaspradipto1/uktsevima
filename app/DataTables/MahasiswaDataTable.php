@@ -52,7 +52,7 @@ class MahasiswaDataTable extends DataTable
                                 title="Edit Mahasiswa">
                             <i class="bi bi-pencil-square"></i>
                         </button>
-                        <form action="' . route('mahasiswas.destroy', $row->id) . '" method="POST" class="d-inline" onsubmit="return confirm(\'Apakah Anda yakin ingin menghapus data mahasiswa ini?\')">
+                        <form action="' . route('mahasiswas.destroy', $row->id) . '" method="POST" class="d-inline form-delete" data-confirm="Apakah Anda yakin ingin menghapus data mahasiswa ini?">
                             ' . csrf_field() . '
                             ' . method_field('DELETE') . '
                             <button type="submit" class="btn btn-danger btn-sm" title="Hapus Mahasiswa">

@@ -40,7 +40,7 @@ class InstitusiDataTable extends DataTable
                         <a href="' . route('institusis.edit', $row->id) . '" class="btn btn-warning btn-sm" title="Edit Institusi">
                             <i class="bi bi-pencil-square"></i>
                         </a>
-                        <form action="' . route('institusis.destroy', $row->id) . '" method="POST" class="d-inline" onsubmit="return confirm(\'Apakah Anda yakin ingin menghapus institusi ini?\')">
+                        <form action="' . route('institusis.destroy', $row->id) . '" method="POST" class="d-inline form-delete" data-confirm="Apakah Anda yakin ingin menghapus institusi ini?">
                             ' . csrf_field() . '
                             ' . method_field('DELETE') . '
                             <button type="submit" class="btn btn-danger btn-sm" title="Hapus">

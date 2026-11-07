@@ -68,7 +68,7 @@ class PeriodeAkademikDataTable extends DataTable
                                 title="Edit Periode">
                             <i class="bi bi-pencil-square"></i>
                         </button>
-                        <form action="' . route('periode-akademiks.destroy', $row->id) . '" method="POST" class="d-inline" onsubmit="return confirm(\'Apakah Anda yakin ingin menghapus periode akademik ini?\')">
+                        <form action="' . route('periode-akademiks.destroy', $row->id) . '" method="POST" class="d-inline form-delete" data-confirm="Apakah Anda yakin ingin menghapus periode akademik ini?">
                             ' . csrf_field() . '
                             ' . method_field('DELETE') . '
                             <button type="submit" class="btn btn-danger btn-sm" title="Hapus">

@@ -85,12 +85,24 @@
 @push('scripts')
 <script>
   document.getElementById('btnGenSecret').addEventListener('click', function () {
-    if (confirm('Apakah Anda yakin ingin mengacak ulang Secret Key? Pastikan sistem webhook diperbarui jika secret key diubah.')) {
-      const arr = new Uint8Array(32);
-      window.crypto.getRandomValues(arr);
-      const hex = Array.from(arr).map(b => b.toString(16).padStart(2, '0')).join('');
-      document.getElementById('secret_key').value = hex;
-    }
+    Swal.fire({
+      title: 'Acak Ulang Secret Key?',
+      text: 'Pastikan sistem webhook gateway diperbarui jika secret key ini diubah.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#0d6efd',
+      cancelButtonColor: '#6c757d',
+      confirmButtonText: '<i class="bi bi-arrow-repeat me-1"></i> Ya, Buat Baru',
+      cancelButtonText: 'Batal',
+      reverseButtons: true
+    }).then((result) => {
+      if (result.isConfirmed) {
+        const arr = new Uint8Array(32);
+        window.crypto.getRandomValues(arr);
+        const hex = Array.from(arr).map(b => b.toString(16).padStart(2, '0')).join('');
+        document.getElementById('secret_key').value = hex;
+      }
+    });
   });
 </script>
 @endpush

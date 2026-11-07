@@ -44,7 +44,7 @@ class UsersDataTable extends DataTable
                         <a href="' . route('users.edit', $user->id) . '" class="btn btn-warning btn-sm" title="Edit Data">
                             <i class="bi bi-pencil-square"></i>
                         </a>
-                        <form action="' . route('users.destroy', $user->id) . '" method="POST" class="d-inline" onsubmit="return confirm(\'Apakah Anda yakin ingin menghapus pengguna ini?\')">
+                        <form action="' . route('users.destroy', $user->id) . '" method="POST" class="d-inline form-delete" data-confirm="Apakah Anda yakin ingin menghapus pengguna ini?">
                             ' . csrf_field() . '
                             ' . method_field('DELETE') . '
                             <button type="submit" class="btn btn-danger btn-sm" title="Hapus">

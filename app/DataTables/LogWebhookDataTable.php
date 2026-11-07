@@ -98,7 +98,7 @@ class LogWebhookDataTable extends DataTable
                                 title="Edit Status Log">
                             <i class="bi bi-pencil-square"></i>
                         </button>
-                        <form action="' . route('log-webhooks.destroy', $row->id) . '" method="POST" class="d-inline" onsubmit="return confirm(\'Apakah Anda yakin ingin menghapus catatan log webhook ini?\')">
+                        <form action="' . route('log-webhooks.destroy', $row->id) . '" method="POST" class="d-inline form-delete" data-confirm="Apakah Anda yakin ingin menghapus catatan log webhook ini?">
                             ' . csrf_field() . '
                             ' . method_field('DELETE') . '
                             <button type="submit" class="btn btn-danger btn-sm" title="Hapus Log">

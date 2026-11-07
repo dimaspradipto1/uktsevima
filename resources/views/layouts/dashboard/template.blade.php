@@ -32,6 +32,7 @@
 
    {{--  datatables CSS  --}}
     <link rel="stylesheet" href="https://cdn.datatables.net/2.1.8/css/dataTables.bootstrap5.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 </head>
 
 <body>
@@ -70,12 +71,35 @@
     <script src="https://code.jquery.com/jquery-3.7.1.js"></script>
     <script src="https://cdn.datatables.net/2.3.2/js/dataTables.js"></script>
     <script src="https://cdn.datatables.net/2.3.2/js/dataTables.bootstrap5.js"></script>
-    
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
    @stack('scripts')
 
   <script>
     document.addEventListener('DOMContentLoaded', function () {
+      // Global SweetAlert2 delete confirmation handler
+      $(document).on('submit', '.form-delete', function (e) {
+        e.preventDefault();
+        const form = this;
+        const message = form.getAttribute('data-confirm') || 'Apakah Anda yakin ingin menghapus data ini?';
+
+        Swal.fire({
+          title: 'Konfirmasi Hapus',
+          text: message,
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonColor: '#dc3545',
+          cancelButtonColor: '#6c757d',
+          confirmButtonText: '<i class="bi bi-trash me-1"></i> Ya, Hapus',
+          cancelButtonText: 'Batal',
+          reverseButtons: true
+        }).then((result) => {
+          if (result.isConfirmed) {
+            form.submit();
+          }
+        });
+      });
+
       document.querySelectorAll('.toggle-password').forEach(function (button) {
         button.addEventListener('click', function () {
           const target = document.querySelector(this.getAttribute('data-target'));
