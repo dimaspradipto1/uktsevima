@@ -120,6 +120,10 @@ class DashboardTest extends TestCase
         $response->assertSee('Politeknik Edukasi');
         $response->assertSee('Rp 2.000.000'); // Dana masuk berhasil
         $response->assertSee('TRX-TEST-001');
+
+        // Messages icon & dummy messages removed
+        $response->assertDontSee('Maria Hudson');
+        $response->assertDontSee('bi-chat-left-text');
     }
 
     public function test_finance_admin_sees_campus_specific_dashboard(): void
@@ -134,6 +138,10 @@ class DashboardTest extends TestCase
         $response->assertSee('Mahasiswa A Test');
         // Admin Kampus A should not see Kampus B name
         $response->assertDontSee('Politeknik Edukasi');
+
+        // Messages icon & dummy messages removed
+        $response->assertDontSee('Maria Hudson');
+        $response->assertDontSee('bi-chat-left-text');
     }
 
     public function test_mahasiswa_sees_student_tuition_portal_dashboard(): void
@@ -149,5 +157,11 @@ class DashboardTest extends TestCase
         $response->assertSee('Rp 2.000.000'); // Sudah Dibayar
         $response->assertSee('Rp 3.000.000'); // Sisa Tagihan
         $response->assertSee('Bayar / Cicil Bulan Ini');
+
+        // Messages icon & dummy messages removed
+        $response->assertDontSee('Maria Hudson');
+        $response->assertDontSee('bi-chat-left-text');
+        // Contextual notification present
+        $response->assertSee('Pembayaran Berhasil');
     }
 }
