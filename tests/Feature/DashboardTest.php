@@ -124,6 +124,14 @@ class DashboardTest extends TestCase
         // Messages icon & dummy messages removed
         $response->assertDontSee('Maria Hudson');
         $response->assertDontSee('bi-chat-left-text');
+
+        // Sidebar Super Admin has full menus
+        $response->assertSee('<span>Data Master</span>', false);
+        $response->assertSee('<span>Institusi</span>', false);
+        $response->assertSee('<span>Mahasiswa</span>', false);
+        $response->assertSee('<span>Periode Akademik</span>', false);
+        $response->assertSee('<span>Log Webhook</span>', false);
+        $response->assertSee('<span>Pengguna</span>', false);
     }
 
     public function test_finance_admin_sees_campus_specific_dashboard(): void
@@ -142,6 +150,13 @@ class DashboardTest extends TestCase
         // Messages icon & dummy messages removed
         $response->assertDontSee('Maria Hudson');
         $response->assertDontSee('bi-chat-left-text');
+
+        // Sidebar Finance Admin: sees Data Master (mahasiswa & periode), but NOT institusi or users
+        $response->assertSee('<span>Data Master</span>', false);
+        $response->assertSee('<span>Mahasiswa</span>', false);
+        $response->assertSee('<span>Periode Akademik</span>', false);
+        $response->assertDontSee('<span>Institusi</span>', false);
+        $response->assertDontSee('<span>Pengguna</span>', false);
     }
 
     public function test_mahasiswa_sees_student_tuition_portal_dashboard(): void
@@ -163,5 +178,12 @@ class DashboardTest extends TestCase
         $response->assertDontSee('bi-chat-left-text');
         // Contextual notification present
         $response->assertSee('Pembayaran Berhasil');
+
+        // Sidebar Mahasiswa: only sees Tagihan & Cicilan UKT, does NOT see Data Master, Log Webhook, or Users
+        $response->assertSee('<span>Tagihan & Cicilan UKT</span>', false);
+        $response->assertDontSee('<span>Data Master</span>', false);
+        $response->assertDontSee('<span>Log Webhook</span>', false);
+        $response->assertDontSee('<span>Pengguna</span>', false);
+        $response->assertDontSee('<span>Institusi</span>', false);
     }
 }
