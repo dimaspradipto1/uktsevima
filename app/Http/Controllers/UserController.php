@@ -59,7 +59,7 @@ class UserController extends Controller
     }
 
     /**
-     * Form edit pengguna.
+     * Form edit pengguna (Profil, Nama, Email, Role).
      */
     public function edit(User $user)
     {
@@ -68,9 +68,6 @@ class UserController extends Controller
 
     /**
      * Update data pengguna.
-     * Logika Password:
-     * - Jika input password diisi: update menggunakan password baru.
-     * - Jika input password dikosongkan: tetap menggunakan password lama.
      */
     public function update(Request $request, User $user)
     {
@@ -95,8 +92,7 @@ class UserController extends Controller
             'role' => $validated['role'],
         ];
 
-        // Jika password diisi, update password baru
-        // Jika password kosong, jangan masukkan key password ke array update (password lama tetap terjaga)
+        // Jika password diisi, update password baru. Jika kosong, tetap gunakan password lama
         if ($request->filled('password')) {
             $userData['password'] = $validated['password'];
         }
@@ -105,6 +101,35 @@ class UserController extends Controller
 
         Alert::success('Berhasil', 'Data pengguna berhasil diperbarui.');
         return redirect()->route('users.index')->with('success', 'Data pengguna berhasil diperbarui.');
+    }
+
+    /**
+     * Halaman terpisah ubah password pengguna.
+     */
+    public function editPassword(User $user)
+    {
+        return view('pages.users.password', compact('user'));
+    }
+
+    /**
+     * Proses update password pengguna secara terpisah.
+     */
+    public function updatePassword(Request $request, User $user)
+    {
+        $validated = $request->validate([
+            'password' => 'required|string|min:6|confirmed',
+        ], [
+            'password.required' => 'Password baru wajib diisi.',
+            'password.min' => 'Password baru minimal 6 karakter.',
+            'password.confirmed' => 'Konfirmasi password baru tidak cocok.',
+        ]);
+
+        $user->update([
+            'password' => $validated['password'],
+        ]);
+
+        Alert::success('Berhasil', 'Password pengguna ' . $user->name . ' berhasil diperbarui.');
+        return redirect()->route('users.index')->with('success', 'Password pengguna berhasil diperbarui.');
     }
 
     /**

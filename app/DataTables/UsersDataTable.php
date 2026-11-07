@@ -29,7 +29,13 @@ class UsersDataTable extends DataTable
             ->addColumn('action', function ($user) {
                 return '
                     <div class="d-flex justify-content-center gap-1">
-                        <a href="' . route('users.edit', $user->id) . '" class="btn btn-warning btn-sm" title="Edit">
+                        <button type="button" class="btn btn-info btn-sm text-white btn-change-password" 
+                                data-id="' . $user->id . '" 
+                                data-name="' . e($user->name) . '" 
+                                title="Ubah Password">
+                            <i class="bi bi-key"></i>
+                        </button>
+                        <a href="' . route('users.edit', $user->id) . '" class="btn btn-warning btn-sm" title="Edit Data">
                             <i class="bi bi-pencil-square"></i>
                         </a>
                         <form action="' . route('users.destroy', $user->id) . '" method="POST" class="d-inline" onsubmit="return confirm(\'Apakah Anda yakin ingin menghapus pengguna ini?\')">
@@ -82,7 +88,7 @@ class UsersDataTable extends DataTable
                 ->title('Aksi')
                 ->exportable(false)
                 ->printable(false)
-                ->width(110)
+                ->width(135)
                 ->addClass('text-center'),
         ];
     }

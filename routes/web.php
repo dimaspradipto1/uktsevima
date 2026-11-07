@@ -20,6 +20,8 @@ Route::controller(AuthController::class)->group(function () {
 
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/users/{user}/password', [UserController::class, 'editPassword'])->name('users.password.edit');
+    Route::put('/users/{user}/password', [UserController::class, 'updatePassword'])->name('users.password.update');
     Route::resource('users', UserController::class)->names('users');
 
     // Data Master
