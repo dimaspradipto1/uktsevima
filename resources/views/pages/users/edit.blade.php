@@ -40,13 +40,29 @@
               @enderror
             </div>
 
-            <div class="col-12">
+            <div class="col-md-6">
               <label for="role" class="form-label">Role Pengguna <span class="text-danger">*</span></label>
               <select name="role" class="form-select @error('role') is-invalid @enderror" id="role" required>
                 <option value="admin" {{ old('role', $user->role) === 'admin' ? 'selected' : '' }}>Admin</option>
                 <option value="mahasiswa" {{ old('role', $user->role) === 'mahasiswa' ? 'selected' : '' }}>Mahasiswa</option>
               </select>
               @error('role')
+                <div class="invalid-feedback">{{ $message }}</div>
+              @enderror
+            </div>
+
+            <div class="col-md-6">
+              <label for="institusi_id" class="form-label">Institusi Kampus</label>
+              <select name="institusi_id" class="form-select @error('institusi_id') is-invalid @enderror" id="institusi_id">
+                <option value="">-- Semua Kampus (Superadmin) --</option>
+                @foreach($institusis as $inst)
+                  <option value="{{ $inst->id }}" {{ old('institusi_id', $user->institusi_id) == $inst->id ? 'selected' : '' }}>
+                    {{ $inst->kode_institusi }} - {{ $inst->nama_institusi }}
+                  </option>
+                @endforeach
+              </select>
+              <div class="form-text text-muted">Pilih kampus terkait (opsional bagi superadmin).</div>
+              @error('institusi_id')
                 <div class="invalid-feedback">{{ $message }}</div>
               @enderror
             </div>

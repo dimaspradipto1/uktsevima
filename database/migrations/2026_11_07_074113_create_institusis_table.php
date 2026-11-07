@@ -13,6 +13,10 @@ return new class extends Migration
     {
         Schema::create('institusis', function (Blueprint $table) {
             $table->id();
+            $table->string('kode_institusi', 10)->unique();
+            $table->string('nama_institusi', 255);
+            $table->string('secret_key', 64);
+            $table->boolean('status')->default(true);
             $table->timestamps();
         });
     }

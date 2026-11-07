@@ -19,6 +19,11 @@ class UsersDataTable extends DataTable
     public function dataTable(QueryBuilder $query): EloquentDataTable
     {
         return (new EloquentDataTable($query))
+            ->addColumn('institusi', function ($user) {
+                return $user->institusi
+                    ? '<span class="badge bg-light text-dark border"><i class="bi bi-building me-1"></i>' . e($user->institusi->nama_institusi) . '</span>'
+                    : '<span class="badge bg-secondary">Semua Kampus</span>';
+            })
             ->editColumn('role', function ($user) {
                 $badgeClass = ($user->role === 'admin') ? 'bg-success' : 'bg-primary';
                 return '<span class="badge ' . $badgeClass . '">' . e(ucfirst($user->role ?? '-')) . '</span>';
@@ -48,7 +53,7 @@ class UsersDataTable extends DataTable
                     </div>
                 ';
             })
-            ->rawColumns(['role', 'action'])
+            ->rawColumns(['institusi', 'role', 'action'])
             ->setRowId('id');
     }
 
@@ -59,7 +64,7 @@ class UsersDataTable extends DataTable
      */
     public function query(User $model): QueryBuilder
     {
-        return $model->newQuery();
+        return $model->newQuery()->with('institusi');
     }
 
     /**
@@ -83,6 +88,7 @@ class UsersDataTable extends DataTable
             Column::make('id')->title('ID')->width(50),
             Column::make('name')->title('Nama'),
             Column::make('email')->title('Email'),
+            Column::computed('institusi')->title('Institusi Kampus'),
             Column::make('role')->title('Hak Akses'),
             Column::computed('action')
                 ->title('Aksi')

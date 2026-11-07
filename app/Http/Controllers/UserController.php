@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\DataTables\UsersDataTable;
+use App\Models\Institusi;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -23,7 +24,8 @@ class UserController extends Controller
      */
     public function create()
     {
-        return view('pages.users.create');
+        $institusis = Institusi::where('status', true)->get();
+        return view('pages.users.create', compact('institusis'));
     }
 
     /**
@@ -32,11 +34,13 @@ class UserController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
+            'institusi_id' => 'nullable|exists:institusis,id',
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
             'password' => 'required|string|min:6',
             'role' => 'required|in:admin,mahasiswa',
         ], [
+            'institusi_id.exists' => 'Institusi yang dipilih tidak valid.',
             'name.required' => 'Nama pengguna wajib diisi.',
             'email.required' => 'Email wajib diisi.',
             'email.email' => 'Format email tidak valid.',
@@ -48,6 +52,7 @@ class UserController extends Controller
         ]);
 
         User::create([
+            'institusi_id' => $validated['institusi_id'] ?? null,
             'name' => $validated['name'],
             'email' => $validated['email'],
             'password' => $validated['password'],
@@ -63,7 +68,8 @@ class UserController extends Controller
      */
     public function edit(User $user)
     {
-        return view('pages.users.edit', compact('user'));
+        $institusis = Institusi::all();
+        return view('pages.users.edit', compact('user', 'institusis'));
     }
 
     /**
@@ -72,10 +78,12 @@ class UserController extends Controller
     public function update(Request $request, User $user)
     {
         $validated = $request->validate([
+            'institusi_id' => 'nullable|exists:institusis,id',
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email,' . $user->id,
             'role' => 'required|in:admin,mahasiswa',
         ], [
+            'institusi_id.exists' => 'Institusi yang dipilih tidak valid.',
             'name.required' => 'Nama pengguna wajib diisi.',
             'email.required' => 'Email wajib diisi.',
             'email.email' => 'Format email tidak valid.',
@@ -85,6 +93,7 @@ class UserController extends Controller
         ]);
 
         $user->update([
+            'institusi_id' => $validated['institusi_id'] ?? null,
             'name' => $validated['name'],
             'email' => $validated['email'],
             'role' => $validated['role'],
