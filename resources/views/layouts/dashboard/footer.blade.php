@@ -1,6 +1,6 @@
   <!-- ======= Footer ======= -->
   <footer id="footer" class="footer">
     <div class="copyright">
-      &copy; Copyright <strong><span>UNIVERSITAS IBNU SINA</span></strong>. All Rights Reserved
+      &copy; Copyright <strong><span>Sevima</span></strong>. All Rights Reserved
     </div>
   </footer><!-- End Footer -->
