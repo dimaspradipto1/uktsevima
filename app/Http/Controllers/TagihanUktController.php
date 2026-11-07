@@ -100,15 +100,23 @@ class TagihanUktController extends Controller
      */
     public function store(Request $request)
     {
-        $validated = $request->validate([
+        $user = auth()->user();
+        $isBatch = $request->input('mode_penerbitan') === 'semua' || $request->input('mahasiswa_id') === 'all';
+
+        $rules = [
             'institusi_id'        => 'required|exists:institusis,id',
-            'mahasiswa_id'        => 'required|exists:mahasiswas,id',
             'periode_akademik_id' => 'required|exists:periode_akademiks,id',
             'nominal_tagihan'     => 'required|numeric|min:10000',
             'tanggal_jatuh_tempo' => 'required|date|after_or_equal:today',
-        ], [
+        ];
+
+        if (!$isBatch) {
+            $rules['mahasiswa_id'] = 'required|exists:mahasiswas,id';
+        }
+
+        $validated = $request->validate($rules, [
             'institusi_id.required'        => 'Institusi kampus wajib dipilih.',
-            'mahasiswa_id.required'        => 'Mahasiswa wajib dipilih.',
+            'mahasiswa_id.required'        => 'Mahasiswa wajib dipilih jika menggunakan mode individu.',
             'periode_akademik_id.required' => 'Periode semester wajib dipilih.',
             'nominal_tagihan.required'     => 'Nominal tagihan UKT wajib diisi.',
             'nominal_tagihan.min'          => 'Nominal tagihan minimal Rp 10.000.',
@@ -116,11 +124,67 @@ class TagihanUktController extends Controller
             'tanggal_jatuh_tempo.after_or_equal' => 'Tanggal jatuh tempo tidak boleh lewat dari hari ini.',
         ]);
 
-        $user = auth()->user();
         if ($user && $user->institusi_id) {
             $validated['institusi_id'] = $user->institusi_id;
         }
 
+        $institusi = Institusi::findOrFail($validated['institusi_id']);
+        $prefix = 'INV-' . $institusi->kode_institusi . '-' . date('Y');
+
+        // ================= KASUS 1: PENERBITAN OTOMATIS / MASSAL UNTUK SELURUH MAHASISWA =================
+        if ($isBatch) {
+            $mahasiswas = Mahasiswa::where('institusi_id', $validated['institusi_id'])->get();
+
+            if ($mahasiswas->isEmpty()) {
+                return back()->withInput()->withErrors([
+                    'periode_akademik_id' => 'Belum ada data mahasiswa terdaftar di institusi ini.',
+                ]);
+            }
+
+            // Ambil mahasiswa yang SUDAH memiliki tagihan pada semester ini
+            $existingMhsIds = TagihanUkt::where('institusi_id', $validated['institusi_id'])
+                ->where('periode_akademik_id', $validated['periode_akademik_id'])
+                ->pluck('mahasiswa_id')
+                ->toArray();
+
+            // Filter mahasiswa yang BELUM memiliki tagihan
+            $eligibleMahasiswas = $mahasiswas->whereNotIn('id', $existingMhsIds);
+
+            if ($eligibleMahasiswas->isEmpty()) {
+                return back()->withInput()->withErrors([
+                    'periode_akademik_id' => 'Seluruh mahasiswa di institusi ini sudah memiliki Tagihan UKT pada periode akademik yang dipilih.',
+                ]);
+            }
+
+            $countThisYear = TagihanUkt::where('institusi_id', $institusi->id)
+                ->whereYear('created_at', date('Y'))
+                ->count();
+
+            DB::transaction(function () use ($eligibleMahasiswas, $validated, $prefix, &$countThisYear) {
+                foreach ($eligibleMahasiswas as $mhs) {
+                    $countThisYear++;
+                    $nomorTagihan = $prefix . '-' . str_pad($countThisYear, 5, '0', STR_PAD_LEFT);
+
+                    TagihanUkt::create([
+                        'institusi_id'        => $validated['institusi_id'],
+                        'mahasiswa_id'        => $mhs->id,
+                        'periode_akademik_id' => $validated['periode_akademik_id'],
+                        'dibuat_oleh'         => auth()->id(),
+                        'nomor_tagihan'       => $nomorTagihan,
+                        'nominal_tagihan'     => $validated['nominal_tagihan'],
+                        'status'              => 'belum_bayar',
+                        'diterbitkan_pada'    => now(),
+                        'tanggal_jatuh_tempo' => $validated['tanggal_jatuh_tempo'],
+                        'dibayar_pada'        => null,
+                    ]);
+                }
+            });
+
+            Alert::success('Berhasil', 'Tagihan UKT berhasil diterbitkan otomatis untuk ' . $eligibleMahasiswas->count() . ' mahasiswa.');
+            return redirect()->route('tagihan-ukts.index')->with('success', 'Tagihan UKT berhasil diterbitkan otomatis untuk ' . $eligibleMahasiswas->count() . ' mahasiswa.');
+        }
+
+        // ================= KASUS 2: PENERBITAN SATU MAHASISWA TERTENTU (INDIVIDU) =================
         // Pengecekan Composite Unique ERD: UQ (institusi_id, mahasiswa_id, periode_akademik_id)
         $isDuplicate = TagihanUkt::where('institusi_id', $validated['institusi_id'])
             ->where('mahasiswa_id', $validated['mahasiswa_id'])
@@ -133,9 +197,6 @@ class TagihanUktController extends Controller
             ]);
         }
 
-        // Auto-generate Nomor Tagihan: INV/{KODE_INST}/{TAHUN}/{SEQUENCE}
-        $institusi = Institusi::findOrFail($validated['institusi_id']);
-        $prefix = 'INV-' . $institusi->kode_institusi . '-' . date('Y');
         $countThisYear = TagihanUkt::where('institusi_id', $institusi->id)
             ->whereYear('created_at', date('Y'))
             ->count() + 1;

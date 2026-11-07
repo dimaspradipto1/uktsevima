@@ -167,9 +167,35 @@
             </select>
           </div>
 
-          <div class="col-12">
-            <label for="create_mahasiswa_id" class="form-label">Pilih Mahasiswa <span class="text-danger">*</span></label>
-            <select name="mahasiswa_id" id="create_mahasiswa_id" class="form-select" required>
+          <!-- Mode Penerbitan Tagihan Modal -->
+          <div class="col-12 bg-light p-3 rounded border">
+            <label class="form-label fw-bold mb-2 text-dark">
+              <i class="bi bi-gear-wide-connected text-primary me-1"></i> Target Penerbitan Tagihan <span class="text-danger">*</span>
+            </label>
+            <div class="d-flex gap-4 flex-wrap">
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="mode_penerbitan" id="modal_mode_semua" value="semua" checked>
+                <label class="form-check-label fw-bold text-success" for="modal_mode_semua">
+                  <i class="bi bi-people-fill me-1"></i> Seluruh Mahasiswa Kampus (Otomatis / Massal)
+                </label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="mode_penerbitan" id="modal_mode_individu" value="individu">
+                <label class="form-check-label fw-semibold text-secondary" for="modal_mode_individu">
+                  <i class="bi bi-person me-1"></i> Satu Mahasiswa Tertentu (Individu)
+                </label>
+              </div>
+            </div>
+
+            <div id="modal_batch_info_box" class="alert alert-info py-2 small mb-0 mt-2">
+              <i class="bi bi-magic me-1"></i>
+              <strong>Mode Otomatis Aktif:</strong> Sistem akan otomatis menerbitkan tagihan UKT semester ini untuk <strong>seluruh mahasiswa aktif</strong> di kampus Anda yang belum memiliki tagihan pada semester tersebut.
+            </div>
+          </div>
+
+          <div class="col-12" id="modal_wrapper_mahasiswa_id" style="display: none;">
+            <label for="create_mahasiswa_id" class="form-label fw-bold">Pilih Mahasiswa <span class="text-danger">*</span></label>
+            <select name="mahasiswa_id" id="create_mahasiswa_id" class="form-select">
               <option value="" disabled selected>-- Pilih Mahasiswa --</option>
               @foreach($mahasiswas as $mhs)
                 <option value="{{ $mhs->id }}" data-institusi="{{ $mhs->institusi_id }}">
@@ -255,6 +281,19 @@
     @endif
 
     <script>
+      // Mode Penerbitan Toggle di Modal
+      $('input[name="mode_penerbitan"]').on('change', function () {
+        if ($('#modal_mode_individu').is(':checked')) {
+          $('#modal_wrapper_mahasiswa_id').slideDown();
+          $('#modal_batch_info_box').slideUp();
+          $('#create_mahasiswa_id').attr('required', 'required');
+        } else {
+          $('#modal_wrapper_mahasiswa_id').slideUp();
+          $('#modal_batch_info_box').slideDown();
+          $('#create_mahasiswa_id').removeAttr('required').val('');
+        }
+      });
+
       // Filter mahasiswa & periode sesuai institusi yang dipilih di modal tambah
       $('#create_institusi_id').on('change', function () {
         const instId = $(this).val();

@@ -126,6 +126,48 @@ class TagihanUktTest extends TestCase
         $response->assertDontSee('-- Pilih Institusi Kampus --');
     }
 
+    public function test_can_batch_generate_tagihan_automatically_for_all_students(): void
+    {
+        // Buat mahasiswa kedua di institusi yang sama
+        $mhs2 = Mahasiswa::create([
+            'institusi_id'          => $this->institusi->id,
+            'nomor_induk_mahasiswa' => '2024TEST002',
+            'nama_lengkap'          => 'Mahasiswa Tester 2',
+        ]);
+
+        $periodeBaru = PeriodeAkademik::create([
+            'institusi_id'    => $this->institusi->id,
+            'tahun_akademik'  => '2025/2026',
+            'semester'        => 'Genap',
+            'tanggal_mulai'   => '2025-03-01',
+            'tanggal_selesai' => '2025-08-31',
+        ]);
+
+        $response = $this->actingAs($this->admin)->post(route('tagihan-ukts.store'), [
+            'mode_penerbitan'     => 'semua',
+            'institusi_id'        => $this->institusi->id,
+            'periode_akademik_id' => $periodeBaru->id,
+            'nominal_tagihan'     => 4500000,
+            'tanggal_jatuh_tempo' => now()->addDays(30)->format('Y-m-d'),
+        ]);
+
+        $response->assertRedirect(route('tagihan-ukts.index'));
+
+        // Harus terbuat tagihan untuk kedua mahasiswa
+        $this->assertDatabaseHas('tagihan_ukts', [
+            'institusi_id'        => $this->institusi->id,
+            'mahasiswa_id'        => $this->mahasiswa->id,
+            'periode_akademik_id' => $periodeBaru->id,
+            'nominal_tagihan'     => 4500000,
+        ]);
+        $this->assertDatabaseHas('tagihan_ukts', [
+            'institusi_id'        => $this->institusi->id,
+            'mahasiswa_id'        => $mhs2->id,
+            'periode_akademik_id' => $periodeBaru->id,
+            'nominal_tagihan'     => 4500000,
+        ]);
+    }
+
     public function test_rejects_duplicate_tagihan_for_same_semester(): void
     {
         TagihanUkt::create([

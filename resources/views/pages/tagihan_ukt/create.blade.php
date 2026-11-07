@@ -65,9 +65,35 @@
               </select>
             </div>
 
-            <div class="col-12">
-              <label for="mahasiswa_id" class="form-label">Pilih Mahasiswa <span class="text-danger">*</span></label>
-              <select name="mahasiswa_id" id="mahasiswa_id" class="form-select" required>
+            <!-- Mode Penerbitan Tagihan -->
+            <div class="col-12 bg-light p-3 rounded border">
+              <label class="form-label fw-bold mb-2 text-dark">
+                <i class="bi bi-gear-wide-connected text-primary me-1"></i> Target Penerbitan Tagihan <span class="text-danger">*</span>
+              </label>
+              <div class="d-flex gap-4 flex-wrap">
+                <div class="form-check">
+                  <input class="form-check-input" type="radio" name="mode_penerbitan" id="mode_semua" value="semua" {{ old('mode_penerbitan', 'semua') === 'semua' ? 'checked' : '' }}>
+                  <label class="form-check-label fw-bold text-success" for="mode_semua">
+                    <i class="bi bi-people-fill me-1"></i> Seluruh Mahasiswa Kampus (Otomatis / Massal)
+                  </label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="radio" name="mode_penerbitan" id="mode_individu" value="individu" {{ old('mode_penerbitan') === 'individu' ? 'checked' : '' }}>
+                  <label class="form-check-label fw-semibold text-secondary" for="mode_individu">
+                    <i class="bi bi-person me-1"></i> Satu Mahasiswa Tertentu (Individu / Khusus)
+                  </label>
+                </div>
+              </div>
+
+              <div id="batch_info_box" class="alert alert-info py-2 small mb-0 mt-2">
+                <i class="bi bi-magic me-1"></i>
+                <strong>Mode Otomatis Aktif:</strong> Sistem akan otomatis menerbitkan tagihan UKT semester ini untuk <strong>seluruh mahasiswa aktif</strong> di kampus Anda yang belum memiliki tagihan pada semester tersebut.
+              </div>
+            </div>
+
+            <div class="col-12" id="wrapper_mahasiswa_id" style="display: none;">
+              <label for="mahasiswa_id" class="form-label fw-bold">Pilih Mahasiswa <span class="text-danger">*</span></label>
+              <select name="mahasiswa_id" id="mahasiswa_id" class="form-select">
                 <option value="" disabled selected>-- Pilih Mahasiswa --</option>
                 @foreach($mahasiswas as $mhs)
                   <option value="{{ $mhs->id }}" data-institusi="{{ $mhs->institusi_id }}" {{ old('mahasiswa_id') == $mhs->id ? 'selected' : '' }}>
@@ -110,6 +136,29 @@
     const instSelect = document.getElementById('institusi_id');
     const periodeSelect = document.getElementById('periode_akademik_id');
     const mhsSelect = document.getElementById('mahasiswa_id');
+    const radioSemua = document.getElementById('mode_semua');
+    const radioIndividu = document.getElementById('mode_individu');
+    const wrapperMhs = document.getElementById('wrapper_mahasiswa_id');
+    const batchInfoBox = document.getElementById('batch_info_box');
+
+    function toggleMode() {
+      if (radioIndividu && radioIndividu.checked) {
+        wrapperMhs.style.display = 'block';
+        batchInfoBox.style.display = 'none';
+        mhsSelect.setAttribute('required', 'required');
+      } else {
+        wrapperMhs.style.display = 'none';
+        batchInfoBox.style.display = 'block';
+        mhsSelect.removeAttribute('required');
+        mhsSelect.value = '';
+      }
+    }
+
+    if (radioSemua && radioIndividu) {
+      radioSemua.addEventListener('change', toggleMode);
+      radioIndividu.addEventListener('change', toggleMode);
+      toggleMode();
+    }
 
     if (instSelect && instSelect.tagName === 'SELECT') {
       instSelect.addEventListener('change', function () {
