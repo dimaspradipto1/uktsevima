@@ -226,6 +226,14 @@ class TagihanUktTest extends TestCase
         $this->assertEquals('lunas', $tagihan->status);
         $this->assertEquals(0, $tagihan->sisa_tagihan);
         $this->assertNotNull($tagihan->dibayar_pada);
+
+        // Cek log webhook otomatis tercatat di audit trail
+        $this->assertDatabaseHas('log_webhooks', [
+            'institusi_id'       => $this->institusi->id,
+            'jenis_event'        => 'payment.success',
+            'status_pemprosesan' => 'diproses',
+            'signature_valid'    => true,
+        ]);
     }
 }
 

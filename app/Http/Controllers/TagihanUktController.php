@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\DataTables\TagihanUktDataTable;
 use App\Models\Institusi;
+use App\Models\LogWebhook;
 use App\Models\Mahasiswa;
 use App\Models\PeriodeAkademik;
 use App\Models\TagihanUkt;
@@ -343,10 +344,13 @@ class TagihanUktController extends Controller
         ]);
 
         DB::transaction(function () use ($tagihanUkt, $validated) {
+            $institusi = $tagihanUkt->institusi ?? Institusi::find($tagihanUkt->institusi_id);
+            $kodeInst = $institusi->kode_institusi ?? 'INST';
             $gatewayTrxId = 'TRX-' . $tagihanUkt->institusi_id . '-' . time() . '-' . rand(100, 999);
+            $gatewayEventId = 'EVT-' . $kodeInst . '-' . time() . '-' . rand(100, 999);
 
             // 1. Simpan Transaksi Pembayaran Cicilan
-            TransaksiPembayaran::create([
+            $transaksi = TransaksiPembayaran::create([
                 'institusi_id'           => $tagihanUkt->institusi_id,
                 'tagihan_ukt_id'         => $tagihanUkt->id,
                 'gateway_transaction_id' => $gatewayTrxId,
@@ -369,6 +373,40 @@ class TagihanUktController extends Controller
                     'status' => 'dicicil',
                 ]);
             }
+
+            // 3. Catat Event Webhook Payment Gateway Otomatis (Audit Trail & Integrasi)
+            $payload = [
+                'event_id'               => $gatewayEventId,
+                'event'                  => 'payment.success',
+                'kode_institusi'         => $kodeInst,
+                'nomor_tagihan'          => $tagihanUkt->nomor_tagihan,
+                'nominal_bayar'          => (int) $validated['nominal_bayar'],
+                'gateway_transaction_id' => $gatewayTrxId,
+                'metode_pembayaran'      => $validated['metode_pembayaran'],
+                'waktu_pembayaran'       => now()->toIso8601String(),
+            ];
+
+            $rawPayload = json_encode($payload);
+            $secretKey = $institusi->secret_key ?? 'secret123';
+            $signature = hash_hmac('sha256', $rawPayload, $secretKey);
+
+            LogWebhook::create([
+                'institusi_id'            => $tagihanUkt->institusi_id,
+                'transaksi_pembayaran_id' => $transaksi->id,
+                'kode_institusi_diterima' => $kodeInst,
+                'gateway_event_id'        => $gatewayEventId,
+                'jenis_event'             => 'payment.success',
+                'signature_diterima'      => $signature,
+                'signature_valid'         => true,
+                'payload_asli'            => $rawPayload,
+                'payload_json'            => $payload,
+                'status_pemprosesan'      => 'diproses',
+                'kode_respons_http'       => 200,
+                'alamat_ip'               => request()->ip() ?? '127.0.0.1',
+                'pesan_kesalahan'         => null,
+                'diterima_pada'           => now(),
+                'diproses_pada'           => now(),
+            ]);
         });
 
         Alert::success('Pembayaran Berhasil', 'Pembayaran cicilan sebesar Rp ' . number_format($validated['nominal_bayar'], 0, ',', '.') . ' berhasil dicatat.');
