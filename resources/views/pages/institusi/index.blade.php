@@ -58,3 +58,4 @@
       {!! $dataTable->scripts() !!}
     @endif
 @endpush
+
