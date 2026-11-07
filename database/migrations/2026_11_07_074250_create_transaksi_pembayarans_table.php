@@ -18,12 +18,12 @@ return new class extends Migration
 
             $table->string('gateway_transaction_id', 100)->nullable();
             $table->unsignedBigInteger('nominal_rupiah');
-            $table->string('metode_pembayaran', 50)->nullable(); // VA, QRIS, Retail, Transfer, Tunai
-            $table->string('status', 20)->default('menunggu'); // menunggu, berhasil, gagal, kedaluwarsa
+            $table->string('metode_pembayaran', 50)->nullable(); 
+            $table->string('status', 20)->default('menunggu'); 
             $table->dateTime('dibayar_pada')->nullable();
             $table->timestamps();
 
-            // Aturan Integritas ERD: gateway_transaction_id unik per institusi
+            
             $table->unique(['institusi_id', 'gateway_transaction_id'], 'uq_transaksi_institusi_gateway');
         });
     }
