@@ -30,6 +30,7 @@ Route::middleware('auth')->group(function () {
     Route::resource('periode-akademik', PeriodeAkademikController::class)->names('periode-akademiks');
 
     // Transaksi & UKT
+    Route::post('tagihan-ukt/{tagihanUkt}/bayar', [TagihanUktController::class, 'bayarCicilan'])->name('tagihan-ukts.bayar');
     Route::resource('tagihan-ukt', TagihanUktController::class)->names('tagihan-ukts');
     Route::resource('transaksi-pembayaran', TransaksiPembayaranController::class)->names('transaksi-pembayarans');
 

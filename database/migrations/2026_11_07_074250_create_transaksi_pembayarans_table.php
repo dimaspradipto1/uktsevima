@@ -13,7 +13,18 @@ return new class extends Migration
     {
         Schema::create('transaksi_pembayarans', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('institusi_id')->constrained('institusis')->cascadeOnDelete();
+            $table->foreignId('tagihan_ukt_id')->constrained('tagihan_ukts')->cascadeOnDelete();
+
+            $table->string('gateway_transaction_id', 100)->nullable();
+            $table->unsignedBigInteger('nominal_bayar');
+            $table->string('metode_pembayaran', 50)->default('VA'); // VA, QRIS, Retail, Transfer
+            $table->string('status', 20)->default('menunggu'); // menunggu, berhasil, gagal, kadaluarsa
+            $table->dateTime('dibayar_pada')->nullable();
             $table->timestamps();
+
+            // Aturan Integritas ERD: gateway_transaction_id unik per institusi
+            $table->unique(['institusi_id', 'gateway_transaction_id'], 'uq_transaksi_institusi_gateway');
         });
     }
 
