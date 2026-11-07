@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class TransaksiPembayaran extends Model
 {
@@ -16,17 +17,17 @@ class TransaksiPembayaran extends Model
         'institusi_id',
         'tagihan_ukt_id',
         'gateway_transaction_id',
-        'nominal_bayar',
+        'nominal_rupiah',
         'metode_pembayaran',
-        'status', // menunggu, berhasil, gagal, kadaluarsa
+        'status', // menunggu, berhasil, gagal, kedaluwarsa
         'dibayar_pada',
     ];
 
     protected function casts(): array
     {
         return [
-            'nominal_bayar' => 'integer',
-            'dibayar_pada'  => 'datetime',
+            'nominal_rupiah' => 'integer',
+            'dibayar_pada'   => 'datetime',
         ];
     }
 
@@ -47,10 +48,36 @@ class TransaksiPembayaran extends Model
     }
 
     /**
-     * Format Rupiah Nominal Bayar
+     * Relasi ke Log Webhook (ERD)
      */
+    public function logWebhooks(): HasMany
+    {
+        return $this->hasMany(LogWebhook::class, 'transaksi_pembayaran_id');
+    }
+
+    /**
+     * Alias nominal_bayar untuk kompatibilitas
+     */
+    public function getNominalBayarAttribute(): int
+    {
+        return (int) $this->nominal_rupiah;
+    }
+
+    public function setNominalBayarAttribute($value): void
+    {
+        $this->attributes['nominal_rupiah'] = $value;
+    }
+
+    /**
+     * Format Rupiah Nominal Pembayaran
+     */
+    public function getFormatNominalAttribute(): string
+    {
+        return 'Rp ' . number_format($this->nominal_rupiah, 0, ',', '.');
+    }
+
     public function getFormatNominalBayarAttribute(): string
     {
-        return 'Rp ' . number_format($this->nominal_bayar, 0, ',', '.');
+        return $this->getFormatNominalAttribute();
     }
 }

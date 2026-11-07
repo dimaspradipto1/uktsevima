@@ -52,7 +52,7 @@ class TagihanUktSeeder extends Seeder
                     'gateway_transaction_id' => 'TRX-UNIV01-2024-001',
                 ],
                 [
-                    'nominal_bayar'     => 1500000,
+                    'nominal_rupiah'    => 1500000,
                     'metode_pembayaran' => 'VA',
                     'status'            => 'berhasil',
                     'dibayar_pada'      => now()->subDays(5),
@@ -106,7 +106,7 @@ class TagihanUktSeeder extends Seeder
                     'gateway_transaction_id' => 'TRX-POLI02-2024-001',
                 ],
                 [
-                    'nominal_bayar'     => 3000000,
+                    'nominal_rupiah'    => 3000000,
                     'metode_pembayaran' => 'QRIS',
                     'status'            => 'berhasil',
                     'dibayar_pada'      => now()->subDays(2),

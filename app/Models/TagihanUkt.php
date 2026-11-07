@@ -83,7 +83,7 @@ class TagihanUkt extends Model
     {
         return (int) $this->transaksiPembayarans()
             ->where('status', 'berhasil')
-            ->sum('nominal_bayar');
+            ->sum('nominal_rupiah');
     }
 
     /**

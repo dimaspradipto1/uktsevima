@@ -17,9 +17,9 @@ return new class extends Migration
             $table->foreignId('tagihan_ukt_id')->constrained('tagihan_ukts')->cascadeOnDelete();
 
             $table->string('gateway_transaction_id', 100)->nullable();
-            $table->unsignedBigInteger('nominal_bayar');
-            $table->string('metode_pembayaran', 50)->default('VA'); // VA, QRIS, Retail, Transfer
-            $table->string('status', 20)->default('menunggu'); // menunggu, berhasil, gagal, kadaluarsa
+            $table->unsignedBigInteger('nominal_rupiah');
+            $table->string('metode_pembayaran', 50)->nullable(); // VA, QRIS, Retail, Transfer, Tunai
+            $table->string('status', 20)->default('menunggu'); // menunggu, berhasil, gagal, kedaluwarsa
             $table->dateTime('dibayar_pada')->nullable();
             $table->timestamps();
 

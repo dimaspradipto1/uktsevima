@@ -52,7 +52,7 @@ class TagihanUktController extends Controller
         $stats = [
             'total_tagihan'     => TagihanUkt::count(),
             'total_nominal'     => (int) TagihanUkt::sum('nominal_tagihan'),
-            'total_terbayar'    => (int) TransaksiPembayaran::where('status', 'berhasil')->sum('nominal_bayar'),
+            'total_terbayar'    => (int) TransaksiPembayaran::where('status', 'berhasil')->sum('nominal_rupiah'),
             'total_lunas'       => TagihanUkt::where('status', 'lunas')->count(),
             'total_belum_lunas' => TagihanUkt::whereIn('status', ['belum_bayar', 'dicicil'])->count(),
         ];
@@ -246,7 +246,7 @@ class TagihanUktController extends Controller
                 'institusi_id'           => $tagihanUkt->institusi_id,
                 'tagihan_ukt_id'         => $tagihanUkt->id,
                 'gateway_transaction_id' => $gatewayTrxId,
-                'nominal_bayar'          => $validated['nominal_bayar'],
+                'nominal_rupiah'         => $validated['nominal_bayar'],
                 'metode_pembayaran'      => $validated['metode_pembayaran'],
                 'status'                 => 'berhasil',
                 'dibayar_pada'           => now(),
