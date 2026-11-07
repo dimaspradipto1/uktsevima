@@ -80,6 +80,22 @@ class LogWebhookTest extends TestCase
         $response->assertSee('Log Webhook Payment Gateway');
     }
 
+    public function test_campus_admin_simulasi_webhook_locks_institution(): void
+    {
+        $campusAdmin = User::create([
+            'name'         => 'Admin Webhook Campus',
+            'email'        => 'admin.wh.campus@example.com',
+            'password'     => bcrypt('password'),
+            'role'         => 'admin',
+            'institusi_id' => $this->institusi->id,
+        ]);
+
+        $response = $this->actingAs($campusAdmin)->get(route('log-webhooks.index'));
+        $response->assertStatus(200);
+        $response->assertSee('Terkunci otomatis pada institusi akun Anda.');
+        $response->assertSee($this->institusi->nama_institusi);
+    }
+
     public function test_can_simulate_webhook_via_admin(): void
     {
         $response = $this->actingAs($this->admin)->post(route('log-webhooks.store'), [

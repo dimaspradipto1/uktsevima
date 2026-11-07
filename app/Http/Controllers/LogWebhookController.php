@@ -18,15 +18,26 @@ class LogWebhookController extends Controller
      */
     public function index(LogWebhookDataTable $dataTable)
     {
-        $stats = [
-            'total_log'      => LogWebhook::count(),
-            'total_valid'    => LogWebhook::where('signature_valid', true)->count(),
-            'total_ditolak'  => LogWebhook::whereIn('status_pemprosesan', ['ditolak', 'gagal'])->count(),
-            'total_duplikat' => LogWebhook::where('status_pemprosesan', 'duplikat')->count(),
-        ];
-
-        $institusis = Institusi::where('status', true)->orderBy('nama_institusi')->get();
-        $transaksis = TransaksiPembayaran::with(['institusi', 'tagihanUkt.mahasiswa'])->latest('id')->limit(50)->get();
+        $user = auth()->user();
+        if ($user && $user->institusi_id) {
+            $stats = [
+                'total_log'      => LogWebhook::where('institusi_id', $user->institusi_id)->count(),
+                'total_valid'    => LogWebhook::where('institusi_id', $user->institusi_id)->where('signature_valid', true)->count(),
+                'total_ditolak'  => LogWebhook::where('institusi_id', $user->institusi_id)->whereIn('status_pemprosesan', ['ditolak', 'gagal'])->count(),
+                'total_duplikat' => LogWebhook::where('institusi_id', $user->institusi_id)->where('status_pemprosesan', 'duplikat')->count(),
+            ];
+            $institusis = Institusi::where('id', $user->institusi_id)->get();
+            $transaksis = TransaksiPembayaran::where('institusi_id', $user->institusi_id)->with(['institusi', 'tagihanUkt.mahasiswa'])->latest('id')->limit(50)->get();
+        } else {
+            $stats = [
+                'total_log'      => LogWebhook::count(),
+                'total_valid'    => LogWebhook::where('signature_valid', true)->count(),
+                'total_ditolak'  => LogWebhook::whereIn('status_pemprosesan', ['ditolak', 'gagal'])->count(),
+                'total_duplikat' => LogWebhook::where('status_pemprosesan', 'duplikat')->count(),
+            ];
+            $institusis = Institusi::where('status', true)->orderBy('nama_institusi')->get();
+            $transaksis = TransaksiPembayaran::with(['institusi', 'tagihanUkt.mahasiswa'])->latest('id')->limit(50)->get();
+        }
 
         return $dataTable->render('pages.log_webhook.index', compact('stats', 'institusis', 'transaksis'));
     }
@@ -36,8 +47,14 @@ class LogWebhookController extends Controller
      */
     public function create()
     {
-        $institusis = Institusi::where('status', true)->orderBy('nama_institusi')->get();
-        $transaksis = TransaksiPembayaran::with(['institusi', 'tagihanUkt.mahasiswa'])->latest('id')->limit(50)->get();
+        $user = auth()->user();
+        if ($user && $user->institusi_id) {
+            $institusis = Institusi::where('id', $user->institusi_id)->get();
+            $transaksis = TransaksiPembayaran::where('institusi_id', $user->institusi_id)->with(['institusi', 'tagihanUkt.mahasiswa'])->latest('id')->limit(50)->get();
+        } else {
+            $institusis = Institusi::where('status', true)->orderBy('nama_institusi')->get();
+            $transaksis = TransaksiPembayaran::with(['institusi', 'tagihanUkt.mahasiswa'])->latest('id')->limit(50)->get();
+        }
 
         return view('pages.log_webhook.create', compact('institusis', 'transaksis'));
     }
@@ -47,6 +64,11 @@ class LogWebhookController extends Controller
      */
     public function store(Request $request)
     {
+        $user = auth()->user();
+        if ($user && $user->institusi_id) {
+            $request->merge(['institusi_id' => $user->institusi_id]);
+        }
+
         $validated = $request->validate([
             'institusi_id'            => 'nullable|exists:institusis,id',
             'transaksi_pembayaran_id' => 'nullable|exists:transaksi_pembayarans,id',
@@ -55,8 +77,16 @@ class LogWebhookController extends Controller
             'simulasi_signature'      => 'required|in:valid,invalid',
         ]);
 
+        if ($user && $user->institusi_id) {
+            $validated['institusi_id'] = $user->institusi_id;
+        }
+
         $institusi = $validated['institusi_id'] ? Institusi::find($validated['institusi_id']) : null;
         $transaksi = $validated['transaksi_pembayaran_id'] ? TransaksiPembayaran::find($validated['transaksi_pembayaran_id']) : null;
+
+        if ($user && $user->institusi_id && $transaksi && $transaksi->institusi_id !== $user->institusi_id) {
+            abort(403, 'Akses data transaksi institusi lain tidak diizinkan.');
+        }
 
         if ($transaksi && !$institusi) {
             $institusi = $transaksi->institusi;
