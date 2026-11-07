@@ -71,6 +71,26 @@ class MahasiswaController extends Controller
             ]);
         }
 
+        // Jika tidak memilih akun login yang sudah ada, otomatis buatkan akun pengguna baru untuk mahasiswa ini
+        if (empty($validated['user_id'])) {
+            $cleanName = strtolower(preg_replace('/[^a-zA-Z0-9]/', '', $validated['nama_lengkap']));
+            $email = $cleanName . '_' . $validated['nomor_induk_mahasiswa'] . '@student.ac.id';
+
+            if (User::where('email', $email)->exists()) {
+                $email = 'mhs_' . $validated['nomor_induk_mahasiswa'] . '_' . rand(10, 99) . '@student.ac.id';
+            }
+
+            $newUser = User::create([
+                'institusi_id' => $validated['institusi_id'],
+                'name'         => $validated['nama_lengkap'],
+                'email'        => $email,
+                'password'     => 'admin123',
+                'role'         => 'mahasiswa',
+            ]);
+
+            $validated['user_id'] = $newUser->id;
+        }
+
         Mahasiswa::create($validated);
 
         Alert::success('Berhasil', 'Data mahasiswa berhasil ditambahkan.');

@@ -22,8 +22,8 @@ class UsersDataTable extends DataTable
             ->addIndexColumn()
             ->addColumn('institusi', function ($user) {
                 return $user->institusi
-                    ? '<span class="badge bg-light text-dark border"><i class="bi bi-building me-1"></i>' . e($user->institusi->nama_institusi) . '</span>'
-                    : '<span class="badge bg-secondary">Semua Kampus</span>';
+                    ? '<span class="text-dark">' . e($user->institusi->nama_institusi) . '</span>'
+                    : '<span class="text-muted">Semua Kampus</span>';
             })
             ->editColumn('role', function ($user) {
                 $badgeClass = ($user->role === 'admin') ? 'bg-success' : 'bg-primary';

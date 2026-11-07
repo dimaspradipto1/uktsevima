@@ -28,7 +28,7 @@ class MahasiswaDataTable extends DataTable
             })
             ->addColumn('institusi', function ($row) {
                 return $row->institusi
-                    ? '<span class="badge bg-light text-dark border"><i class="bi bi-building me-1"></i>' . e($row->institusi->nama_institusi) . '</span>'
+                    ? '<span class="text-dark">' . e($row->institusi->nama_institusi) . '</span>'
                     : '<span class="text-muted">-</span>';
             })
             ->addColumn('user_account', function ($row) {

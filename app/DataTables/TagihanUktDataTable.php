@@ -27,12 +27,12 @@ class TagihanUktDataTable extends DataTable
                 if (!$row->mahasiswa) {
                     return '<span class="text-muted">-</span>';
                 }
-                return '<div class="fw-bold text-dark">' . e($row->mahasiswa->nama_lengkap) . '</div>' .
-                       '<small class="text-muted font-monospace"><i class="bi bi-person-badge me-1"></i>' . e($row->mahasiswa->nomor_induk_mahasiswa) . '</small>';
+                return '<div class="fw-semibold text-dark">' . e($row->mahasiswa->nama_lengkap) . '</div>' .
+                       '<small class="text-muted font-monospace">' . e($row->mahasiswa->nomor_induk_mahasiswa) . '</small>';
             })
             ->addColumn('institusi', function ($row) {
                 return $row->institusi
-                    ? '<span class="badge bg-light text-dark border"><i class="bi bi-building me-1"></i>' . e($row->institusi->nama_institusi) . '</span>'
+                    ? '<span class="text-dark">' . e($row->institusi->nama_institusi) . '</span>'
                     : '<span class="text-muted">-</span>';
             })
             ->addColumn('periode', function ($row) {

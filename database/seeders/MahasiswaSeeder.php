@@ -16,9 +16,17 @@ class MahasiswaSeeder extends Seeder
     {
         $institusi1 = Institusi::first();
         $institusi2 = Institusi::skip(1)->first() ?? $institusi1;
-        $studentUser = User::where('role', 'mahasiswa')->first();
 
+        $userDimas = User::where('email', 'dimas@gmail.com')->first();
+        $userSiti = User::where('email', 'siti@gmail.com')->first();
+        $userBudi = User::where('email', 'budi@gmail.com')->first();
+        $userRina = User::where('email', 'rina@gmail.com')->first();
+
+        // Update institusi_id di user agar sesuai kampus mereka
         if ($institusi1) {
+            $userDimas?->update(['institusi_id' => $institusi1->id]);
+            $userSiti?->update(['institusi_id' => $institusi1->id]);
+
             Mahasiswa::updateOrCreate(
                 [
                     'institusi_id' => $institusi1->id,
@@ -26,7 +34,7 @@ class MahasiswaSeeder extends Seeder
                 ],
                 [
                     'nama_lengkap' => 'Dimas Pradipto',
-                    'user_id' => $studentUser?->id,
+                    'user_id'      => $userDimas?->id,
                 ]
             );
 
@@ -37,12 +45,15 @@ class MahasiswaSeeder extends Seeder
                 ],
                 [
                     'nama_lengkap' => 'Siti Nurhaliza',
-                    'user_id' => null,
+                    'user_id'      => $userSiti?->id,
                 ]
             );
         }
 
         if ($institusi2) {
+            $userBudi?->update(['institusi_id' => $institusi2->id]);
+            $userRina?->update(['institusi_id' => $institusi2->id]);
+
             Mahasiswa::updateOrCreate(
                 [
                     'institusi_id' => $institusi2->id,
@@ -50,7 +61,7 @@ class MahasiswaSeeder extends Seeder
                 ],
                 [
                     'nama_lengkap' => 'Budi Santoso',
-                    'user_id' => null,
+                    'user_id'      => $userBudi?->id,
                 ]
             );
 
@@ -61,7 +72,7 @@ class MahasiswaSeeder extends Seeder
                 ],
                 [
                     'nama_lengkap' => 'Rina Andriani',
-                    'user_id' => null,
+                    'user_id'      => $userRina?->id,
                 ]
             );
         }

@@ -22,7 +22,7 @@ class PeriodeAkademikDataTable extends DataTable
             ->addIndexColumn()
             ->addColumn('institusi', function ($row) {
                 return $row->institusi
-                    ? '<span class="badge bg-light text-dark border"><i class="bi bi-building me-1"></i>' . e($row->institusi->nama_institusi) . '</span>'
+                    ? '<span class="text-dark">' . e($row->institusi->nama_institusi) . '</span>'
                     : '<span class="text-muted">-</span>';
             })
             ->editColumn('tahun_akademik', function ($row) {
