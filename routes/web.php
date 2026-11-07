@@ -35,5 +35,9 @@ Route::middleware('auth')->group(function () {
     Route::resource('transaksi-pembayaran', TransaksiPembayaranController::class)->names('transaksi-pembayarans');
 
     // Log Webhook
+    Route::post('log-webhook/{logWebhook}/retry', [LogWebhookController::class, 'retryProcessing'])->name('log-webhooks.retry');
     Route::resource('log-webhook', LogWebhookController::class)->names('log-webhooks');
 });
+
+// Endpoint Webhook Masuk dari Payment Gateway (Simulasi & Live)
+Route::post('api/webhook-payment', [LogWebhookController::class, 'handleIncomingWebhook'])->name('webhook.incoming');

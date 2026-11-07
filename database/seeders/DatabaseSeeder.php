@@ -21,6 +21,7 @@ class DatabaseSeeder extends Seeder
             UserSeeder::class,
             MahasiswaSeeder::class,
             TagihanUktSeeder::class,
+            LogWebhookSeeder::class,
         ]);
     }
 }
