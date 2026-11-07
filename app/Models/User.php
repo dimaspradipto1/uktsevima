@@ -6,6 +6,7 @@ namespace App\Models;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -56,5 +57,13 @@ class User extends Authenticatable
     public function institusi(): BelongsTo
     {
         return $this->belongsTo(Institusi::class, 'institusi_id');
+    }
+
+    /**
+     * Relasi ke Profil Mahasiswa (1 Akun Pengguna Mahasiswa = 1 Profil)
+     */
+    public function mahasiswa(): HasOne
+    {
+        return $this->hasOne(Mahasiswa::class, 'user_id');
     }
 }

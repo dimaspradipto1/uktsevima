@@ -13,7 +13,14 @@ return new class extends Migration
     {
         Schema::create('mahasiswas', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('institusi_id')->constrained('institusis')->cascadeOnDelete();
+            $table->foreignId('user_id')->nullable()->unique()->constrained('users')->nullOnDelete();
+            $table->string('nomor_induk_mahasiswa', 50);
+            $table->string('nama_lengkap', 150);
             $table->timestamps();
+
+            // Aturan Integritas ERD: Unique (institusi_id, nomor_induk_mahasiswa)
+            $table->unique(['institusi_id', 'nomor_induk_mahasiswa'], 'uq_mahasiswa_institusi_nim');
         });
     }
 

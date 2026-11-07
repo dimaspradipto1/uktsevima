@@ -19,6 +19,7 @@ class DatabaseSeeder extends Seeder
             InstitusiSeeder::class,
             PeriodeAkademikSeeder::class,
             UserSeeder::class,
+            MahasiswaSeeder::class,
         ]);
     }
 }

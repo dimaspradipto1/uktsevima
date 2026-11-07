@@ -6,6 +6,7 @@ use App\DataTables\PeriodeAkademikDataTable;
 use App\Models\Institusi;
 use App\Models\PeriodeAkademik;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Schema;
 use RealRashid\SweetAlert\Facades\Alert;
 
 class PeriodeAkademikController extends Controller
@@ -126,7 +127,7 @@ class PeriodeAkademikController extends Controller
     public function destroy(PeriodeAkademik $periodeAkademik)
     {
         // Proteksi integritas jika sudah memiliki tagihan UKT
-        if ($periodeAkademik->tagihanUkts()->exists()) {
+        if (Schema::hasColumn('tagihan_ukts', 'periode_akademik_id') && $periodeAkademik->tagihanUkts()->exists()) {
             Alert::error('Gagal Menghapus', 'Periode akademik ini tidak dapat dihapus karena sudah memiliki data Tagihan UKT terkait.');
             return redirect()->route('periode-akademiks.index')->with('error', 'Periode akademik ini tidak dapat dihapus karena sudah memiliki data Tagihan UKT terkait.');
         }
