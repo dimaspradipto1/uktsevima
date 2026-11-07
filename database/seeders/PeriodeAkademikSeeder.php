@@ -57,3 +57,4 @@ class PeriodeAkademikSeeder extends Seeder
         }
     }
 }
+
