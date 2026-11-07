@@ -19,6 +19,7 @@ class UsersDataTable extends DataTable
     public function dataTable(QueryBuilder $query): EloquentDataTable
     {
         return (new EloquentDataTable($query))
+            ->addIndexColumn()
             ->addColumn('institusi', function ($user) {
                 return $user->institusi
                     ? '<span class="badge bg-light text-dark border"><i class="bi bi-building me-1"></i>' . e($user->institusi->nama_institusi) . '</span>'
@@ -64,7 +65,7 @@ class UsersDataTable extends DataTable
      */
     public function query(User $model): QueryBuilder
     {
-        return $model->newQuery()->with('institusi');
+        return $model->newQuery()->with('institusi')->latest('id');
     }
 
     /**
@@ -76,7 +77,7 @@ class UsersDataTable extends DataTable
             ->setTableId('users-table')
             ->columns($this->getColumns())
             ->minifiedAjax()
-            ->orderBy(0, 'desc');
+            ->orderBy(1, 'asc');
     }
 
     /**
@@ -85,7 +86,12 @@ class UsersDataTable extends DataTable
     public function getColumns(): array
     {
         return [
-            Column::make('id')->title('ID')->width(50),
+            Column::computed('DT_RowIndex')
+                ->title('No.')
+                ->width(40)
+                ->searchable(false)
+                ->orderable(false)
+                ->addClass('text-center'),
             Column::make('name')->title('Nama'),
             Column::make('email')->title('Email'),
             Column::computed('institusi')->title('Institusi Kampus'),

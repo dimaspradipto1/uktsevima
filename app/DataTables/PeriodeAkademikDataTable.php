@@ -19,6 +19,7 @@ class PeriodeAkademikDataTable extends DataTable
     public function dataTable(QueryBuilder $query): EloquentDataTable
     {
         return (new EloquentDataTable($query))
+            ->addIndexColumn()
             ->addColumn('institusi', function ($row) {
                 return $row->institusi
                     ? '<span class="badge bg-light text-dark border"><i class="bi bi-building me-1"></i>' . e($row->institusi->nama_institusi) . '</span>'
@@ -88,7 +89,7 @@ class PeriodeAkademikDataTable extends DataTable
      */
     public function query(PeriodeAkademik $model): QueryBuilder
     {
-        return $model->newQuery()->with('institusi');
+        return $model->newQuery()->with('institusi')->latest('id');
     }
 
     /**
@@ -100,7 +101,7 @@ class PeriodeAkademikDataTable extends DataTable
                     ->setTableId('periode-akademiks-table')
                     ->columns($this->getColumns())
                     ->minifiedAjax()
-                    ->orderBy(0, 'desc');
+                    ->orderBy(2, 'desc');
     }
 
     /**
@@ -109,7 +110,12 @@ class PeriodeAkademikDataTable extends DataTable
     public function getColumns(): array
     {
         return [
-            Column::make('id')->title('ID')->width(50),
+            Column::computed('DT_RowIndex')
+                  ->title('No.')
+                  ->width(40)
+                  ->searchable(false)
+                  ->orderable(false)
+                  ->addClass('text-center'),
             Column::computed('institusi')->title('Institusi Kampus'),
             Column::make('tahun_akademik')->title('Tahun Akademik'),
             Column::make('semester')->title('Semester'),

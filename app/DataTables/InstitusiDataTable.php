@@ -19,6 +19,7 @@ class InstitusiDataTable extends DataTable
     public function dataTable(QueryBuilder $query): EloquentDataTable
     {
         return (new EloquentDataTable($query))
+            ->addIndexColumn()
             ->editColumn('kode_institusi', function ($row) {
                 return '<span class="badge bg-light text-dark border font-monospace px-2 py-1">' . e($row->kode_institusi) . '</span>';
             })
@@ -60,7 +61,7 @@ class InstitusiDataTable extends DataTable
      */
     public function query(Institusi $model): QueryBuilder
     {
-        return $model->newQuery();
+        return $model->newQuery()->latest('id');
     }
 
     /**
@@ -72,7 +73,7 @@ class InstitusiDataTable extends DataTable
                     ->setTableId('institusis-table')
                     ->columns($this->getColumns())
                     ->minifiedAjax()
-                    ->orderBy(0, 'desc');
+                    ->orderBy(1, 'asc');
     }
 
     /**
@@ -81,7 +82,12 @@ class InstitusiDataTable extends DataTable
     public function getColumns(): array
     {
         return [
-            Column::make('id')->title('ID')->width(50),
+            Column::computed('DT_RowIndex')
+                  ->title('No.')
+                  ->width(40)
+                  ->searchable(false)
+                  ->orderable(false)
+                  ->addClass('text-center'),
             Column::make('kode_institusi')->title('Kode Institusi'),
             Column::make('nama_institusi')->title('Nama Institusi'),
             Column::make('secret_key')->title('Secret Key (HMAC)'),
