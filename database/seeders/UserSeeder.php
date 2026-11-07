@@ -24,7 +24,7 @@ class UserSeeder extends Seeder
             ],
             [
                 'name' => 'mahaiswa',
-                'email'=> 'mahasiswa@gmaiil.con',
+                'email'=> 'mahasiswa@gmail.con',
                 'password'=> 'admin123',
                 'role'=>'mahasiswa',
                 'created_at' => now(),

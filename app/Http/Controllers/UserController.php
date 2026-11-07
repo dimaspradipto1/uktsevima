@@ -67,7 +67,7 @@ class UserController extends Controller
     }
 
     /**
-     * Update data pengguna.
+     * Update data profil pengguna (Nama, Email, Role).
      */
     public function update(Request $request, User $user)
     {
@@ -75,7 +75,6 @@ class UserController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email,' . $user->id,
             'role' => 'required|in:admin,mahasiswa',
-            'password' => 'nullable|string|min:6',
         ], [
             'name.required' => 'Nama pengguna wajib diisi.',
             'email.required' => 'Email wajib diisi.',
@@ -83,21 +82,13 @@ class UserController extends Controller
             'email.unique' => 'Email sudah digunakan oleh pengguna lain.',
             'role.required' => 'Role wajib dipilih.',
             'role.in' => 'Role yang dipilih tidak valid.',
-            'password.min' => 'Password baru minimal 6 karakter.',
         ]);
 
-        $userData = [
+        $user->update([
             'name' => $validated['name'],
             'email' => $validated['email'],
             'role' => $validated['role'],
-        ];
-
-        // Jika password diisi, update password baru. Jika kosong, tetap gunakan password lama
-        if ($request->filled('password')) {
-            $userData['password'] = $validated['password'];
-        }
-
-        $user->update($userData);
+        ]);
 
         Alert::success('Berhasil', 'Data pengguna berhasil diperbarui.');
         return redirect()->route('users.index')->with('success', 'Data pengguna berhasil diperbarui.');
