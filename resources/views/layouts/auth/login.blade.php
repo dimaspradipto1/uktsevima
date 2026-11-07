@@ -91,8 +91,13 @@
 
                     <div class="col-12">
                       <label for="yourPassword" class="form-label">Password</label>
-                      <input type="password" name="password" class="form-control @error('password') is-invalid @enderror" id="yourPassword" required>
-                      <div class="invalid-feedback">
+                      <div class="input-group">
+                        <input type="password" name="password" class="form-control @error('password') is-invalid @enderror" id="yourPassword" required>
+                        <button class="btn btn-outline-secondary toggle-password" type="button" data-target="#yourPassword" title="Lihat / Sembunyikan Password">
+                          <i class="bi bi-eye"></i>
+                        </button>
+                      </div>
+                      <div class="invalid-feedback @error('password') d-block @enderror">
                         @error('password')
                           {{ $message }}
                         @else
@@ -141,6 +146,28 @@
 
   <!-- Template Main JS File -->
   <script src="{{ asset('assets/js/main.js') }}"></script>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      document.querySelectorAll('.toggle-password').forEach(function (button) {
+        button.addEventListener('click', function () {
+          const target = document.querySelector(this.getAttribute('data-target'));
+          const icon = this.querySelector('i');
+          if (target) {
+            if (target.type === 'password') {
+              target.type = 'text';
+              icon.classList.remove('bi-eye');
+              icon.classList.add('bi-eye-slash');
+            } else {
+              target.type = 'password';
+              icon.classList.remove('bi-eye-slash');
+              icon.classList.add('bi-eye');
+            }
+          }
+        });
+      });
+    });
+  </script>
 
 </body>
 

@@ -53,9 +53,14 @@
 
             <div class="col-12">
               <label for="password" class="form-label">Password <span class="text-danger">*</span></label>
-              <input type="password" name="password" class="form-control @error('password') is-invalid @enderror" id="password" placeholder="Minimal 6 karakter" required>
+              <div class="input-group">
+                <input type="password" name="password" class="form-control @error('password') is-invalid @enderror" id="password" placeholder="Minimal 6 karakter" required>
+                <button class="btn btn-outline-secondary toggle-password" type="button" data-target="#password" title="Lihat / Sembunyikan Password">
+                  <i class="bi bi-eye"></i>
+                </button>
+              </div>
               @error('password')
-                <div class="invalid-feedback">{{ $message }}</div>
+                <div class="invalid-feedback d-block">{{ $message }}</div>
               @enderror
             </div>
 

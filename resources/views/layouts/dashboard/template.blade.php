@@ -74,6 +74,28 @@
 
    @stack('scripts')
 
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      document.querySelectorAll('.toggle-password').forEach(function (button) {
+        button.addEventListener('click', function () {
+          const target = document.querySelector(this.getAttribute('data-target'));
+          const icon = this.querySelector('i');
+          if (target) {
+            if (target.type === 'password') {
+              target.type = 'text';
+              icon.classList.remove('bi-eye');
+              icon.classList.add('bi-eye-slash');
+            } else {
+              target.type = 'password';
+              icon.classList.remove('bi-eye-slash');
+              icon.classList.add('bi-eye');
+            }
+          }
+        });
+      });
+    });
+  </script>
+
 </body>
 
 

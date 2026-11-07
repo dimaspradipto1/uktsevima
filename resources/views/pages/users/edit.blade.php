@@ -53,7 +53,12 @@
 
             <div class="col-12">
               <label for="password" class="form-label">Password Baru <span class="text-muted small">(Opsional)</span></label>
-              <input type="password" name="password" class="form-control @error('password') is-invalid @enderror" id="password" placeholder="Kosongkan jika tidak ingin mengganti password" autocomplete="new-password">
+              <div class="input-group">
+                <input type="password" name="password" class="form-control @error('password') is-invalid @enderror" id="password" placeholder="Kosongkan jika tidak ingin mengganti password" autocomplete="new-password">
+                <button class="btn btn-outline-secondary toggle-password" type="button" data-target="#password" title="Lihat / Sembunyikan Password">
+                  <i class="bi bi-eye"></i>
+                </button>
+              </div>
               <div class="form-text text-muted">
                 <i class="bi bi-info-circle me-1"></i> Biarkan kosong jika tidak ingin mengubah password lama.
               </div>
