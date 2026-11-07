@@ -39,7 +39,12 @@ class MahasiswaController extends Controller
      */
     public function create()
     {
-        $institusis = Institusi::where('status', true)->orderBy('nama_institusi')->get();
+        $user = auth()->user();
+        if ($user && $user->institusi_id) {
+            $institusis = Institusi::where('id', $user->institusi_id)->get();
+        } else {
+            $institusis = Institusi::where('status', true)->orderBy('nama_institusi')->get();
+        }
         $availableUsers = User::whereDoesntHave('mahasiswa')->orderBy('name')->get();
 
         return view('pages.mahasiswa.create', compact('institusis', 'availableUsers'));

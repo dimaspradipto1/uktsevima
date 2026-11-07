@@ -38,14 +38,20 @@
 
             <div class="col-12">
               <label for="institusi_id" class="form-label">Institusi Kampus <span class="text-danger">*</span></label>
-              <select name="institusi_id" id="institusi_id" class="form-select" required>
-                <option value="" disabled selected>-- Pilih Institusi Kampus --</option>
-                @foreach($institusis as $inst)
-                  <option value="{{ $inst->id }}" {{ old('institusi_id') == $inst->id ? 'selected' : '' }}>
-                    {{ $inst->kode_institusi }} - {{ $inst->nama_institusi }}
-                  </option>
-                @endforeach
-              </select>
+              @if(auth()->user()->institusi_id)
+                <input type="hidden" name="institusi_id" id="institusi_id" value="{{ auth()->user()->institusi_id }}">
+                <input type="text" class="form-control bg-light fw-semibold" value="{{ auth()->user()->institusi->kode_institusi ?? '' }} - {{ auth()->user()->institusi->nama_institusi ?? '' }}" readonly>
+                <div class="form-text text-muted">Terkunci otomatis pada institusi akun Anda.</div>
+              @else
+                <select name="institusi_id" id="institusi_id" class="form-select" required>
+                  <option value="" disabled selected>-- Pilih Institusi Kampus --</option>
+                  @foreach($institusis as $inst)
+                    <option value="{{ $inst->id }}" {{ old('institusi_id') == $inst->id ? 'selected' : '' }}>
+                      {{ $inst->kode_institusi }} - {{ $inst->nama_institusi }}
+                    </option>
+                  @endforeach
+                </select>
+              @endif
             </div>
 
             <div class="col-12">

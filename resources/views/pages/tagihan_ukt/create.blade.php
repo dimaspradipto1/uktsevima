@@ -36,14 +36,21 @@
 
             <div class="col-md-6">
               <label for="institusi_id" class="form-label">Institusi Kampus <span class="text-danger">*</span></label>
-              <select name="institusi_id" id="institusi_id" class="form-select" required>
-                <option value="" disabled selected>-- Pilih Institusi Kampus --</option>
-                @foreach($institusis as $inst)
-                  <option value="{{ $inst->id }}" {{ old('institusi_id') == $inst->id ? 'selected' : '' }}>
-                    {{ $inst->kode_institusi }} - {{ $inst->nama_institusi }}
-                  </option>
-                @endforeach
-              </select>
+              @if(auth()->user()->institusi_id)
+                <input type="hidden" name="institusi_id" id="institusi_id" value="{{ auth()->user()->institusi_id }}">
+                <input type="text" class="form-control bg-light fw-semibold" value="{{ auth()->user()->institusi->kode_institusi ?? '' }} - {{ auth()->user()->institusi->nama_institusi ?? '' }}" readonly>
+                <div class="form-text text-muted">Terkunci otomatis pada institusi akun Anda.</div>
+              @else
+                <select name="institusi_id" id="institusi_id" class="form-select" required>
+                  <option value="" disabled selected>-- Pilih Institusi Kampus --</option>
+                  @foreach($institusis as $inst)
+                    <option value="{{ $inst->id }}" {{ old('institusi_id') == $inst->id ? 'selected' : '' }}>
+                      {{ $inst->kode_institusi }} - {{ $inst->nama_institusi }}
+                    </option>
+                  @endforeach
+                </select>
+                <div class="form-text text-muted">Super Admin: Pilih institusi penerbit tagihan.</div>
+              @endif
             </div>
 
             <div class="col-md-6">
@@ -51,8 +58,8 @@
               <select name="periode_akademik_id" id="periode_akademik_id" class="form-select" required>
                 <option value="" disabled selected>-- Pilih Periode Semester --</option>
                 @foreach($periodes as $p)
-                  <option value="{{ $p->id }}" {{ old('periode_akademik_id') == $p->id ? 'selected' : '' }}>
-                    {{ $p->tahun_akademik }} - {{ $p->semester }}
+                  <option value="{{ $p->id }}" data-institusi="{{ $p->institusi_id }}" {{ old('periode_akademik_id') == $p->id ? 'selected' : '' }}>
+                    {{ $p->tahun_akademik }} - {{ $p->semester }} {{ !auth()->user()->institusi_id ? '(' . ($p->institusi->kode_institusi ?? '') . ')' : '' }}
                   </option>
                 @endforeach
               </select>
@@ -63,8 +70,8 @@
               <select name="mahasiswa_id" id="mahasiswa_id" class="form-select" required>
                 <option value="" disabled selected>-- Pilih Mahasiswa --</option>
                 @foreach($mahasiswas as $mhs)
-                  <option value="{{ $mhs->id }}" {{ old('mahasiswa_id') == $mhs->id ? 'selected' : '' }}>
-                    {{ $mhs->nomor_induk_mahasiswa }} - {{ $mhs->nama_lengkap }}
+                  <option value="{{ $mhs->id }}" data-institusi="{{ $mhs->institusi_id }}" {{ old('mahasiswa_id') == $mhs->id ? 'selected' : '' }}>
+                    {{ $mhs->nomor_induk_mahasiswa }} - {{ $mhs->nama_lengkap }} {{ !auth()->user()->institusi_id ? '(' . ($mhs->institusi->nama_institusi ?? '') . ')' : '' }}
                   </option>
                 @endforeach
               </select>
@@ -96,5 +103,31 @@
     </div>
   </div>
 </section>
+
+@push('scripts')
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const instSelect = document.getElementById('institusi_id');
+    const periodeSelect = document.getElementById('periode_akademik_id');
+    const mhsSelect = document.getElementById('mahasiswa_id');
+
+    if (instSelect && instSelect.tagName === 'SELECT') {
+      instSelect.addEventListener('change', function () {
+        const instId = this.value;
+        Array.from(periodeSelect.options).forEach(opt => {
+          if (!opt.value) return;
+          opt.style.display = opt.dataset.institusi === instId ? '' : 'none';
+        });
+        Array.from(mhsSelect.options).forEach(opt => {
+          if (!opt.value) return;
+          opt.style.display = opt.dataset.institusi === instId ? '' : 'none';
+        });
+        periodeSelect.value = '';
+        mhsSelect.value = '';
+      });
+    }
+  });
+</script>
+@endpush
 @endsection
 

@@ -25,7 +25,12 @@ class PeriodeAkademikController extends Controller
      */
     public function create()
     {
-        $institusis = Institusi::where('status', true)->orderBy('nama_institusi')->get();
+        $user = auth()->user();
+        if ($user && $user->institusi_id) {
+            $institusis = Institusi::where('id', $user->institusi_id)->get();
+        } else {
+            $institusis = Institusi::where('status', true)->orderBy('nama_institusi')->get();
+        }
         return view('pages.periode_akademik.create', compact('institusis'));
     }
 

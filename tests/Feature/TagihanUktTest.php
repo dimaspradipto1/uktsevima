@@ -109,6 +109,23 @@ class TagihanUktTest extends TestCase
         ]);
     }
 
+    public function test_campus_admin_create_tagihan_locks_institution(): void
+    {
+        $campusAdmin = User::create([
+            'name'         => 'Admin Univ Only',
+            'email'        => 'admin.univ.only@example.com',
+            'password'     => bcrypt('password'),
+            'role'         => 'admin',
+            'institusi_id' => $this->institusi->id,
+        ]);
+
+        $response = $this->actingAs($campusAdmin)->get(route('tagihan-ukts.create'));
+        $response->assertStatus(200);
+        $response->assertSee('Terkunci otomatis pada institusi akun Anda.');
+        $response->assertSee($this->institusi->nama_institusi);
+        $response->assertDontSee('-- Pilih Institusi Kampus --');
+    }
+
     public function test_rejects_duplicate_tagihan_for_same_semester(): void
     {
         TagihanUkt::create([

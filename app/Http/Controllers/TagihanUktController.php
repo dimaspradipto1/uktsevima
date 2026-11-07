@@ -81,9 +81,16 @@ class TagihanUktController extends Controller
      */
     public function create()
     {
-        $institusis = Institusi::where('status', true)->orderBy('nama_institusi')->get();
-        $periodes = PeriodeAkademik::with('institusi')->latest('id')->get();
-        $mahasiswas = Mahasiswa::with('institusi')->orderBy('nama_lengkap')->get();
+        $user = auth()->user();
+        if ($user && $user->institusi_id) {
+            $institusis = Institusi::where('id', $user->institusi_id)->get();
+            $periodes = PeriodeAkademik::where('institusi_id', $user->institusi_id)->latest('id')->get();
+            $mahasiswas = Mahasiswa::where('institusi_id', $user->institusi_id)->orderBy('nama_lengkap')->get();
+        } else {
+            $institusis = Institusi::where('status', true)->orderBy('nama_institusi')->get();
+            $periodes = PeriodeAkademik::with('institusi')->latest('id')->get();
+            $mahasiswas = Mahasiswa::with('institusi')->orderBy('nama_lengkap')->get();
+        }
 
         return view('pages.tagihan_ukt.create', compact('institusis', 'periodes', 'mahasiswas'));
     }

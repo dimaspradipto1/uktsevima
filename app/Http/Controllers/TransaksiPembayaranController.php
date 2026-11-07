@@ -56,11 +56,21 @@ class TransaksiPembayaranController extends Controller
      */
     public function create()
     {
-        $institusis = Institusi::where('status', true)->orderBy('nama_institusi')->get();
-        $tagihanUkts = TagihanUkt::with(['institusi', 'mahasiswa', 'periodeAkademik'])
-            ->whereIn('status', ['belum_bayar', 'dicicil'])
-            ->latest('id')
-            ->get();
+        $user = auth()->user();
+        if ($user && $user->institusi_id) {
+            $institusis = Institusi::where('id', $user->institusi_id)->get();
+            $tagihanUkts = TagihanUkt::with(['institusi', 'mahasiswa', 'periodeAkademik'])
+                ->where('institusi_id', $user->institusi_id)
+                ->whereIn('status', ['belum_bayar', 'dicicil'])
+                ->latest('id')
+                ->get();
+        } else {
+            $institusis = Institusi::where('status', true)->orderBy('nama_institusi')->get();
+            $tagihanUkts = TagihanUkt::with(['institusi', 'mahasiswa', 'periodeAkademik'])
+                ->whereIn('status', ['belum_bayar', 'dicicil'])
+                ->latest('id')
+                ->get();
+        }
 
         return view('pages.transaksi_pembayaran.create', compact('institusis', 'tagihanUkts'));
     }
