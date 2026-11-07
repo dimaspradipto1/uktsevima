@@ -41,3 +41,6 @@ Route::middleware('auth')->group(function () {
 
 // Endpoint Webhook Masuk dari Payment Gateway (Simulasi & Live)
 Route::post('api/webhook-payment', [LogWebhookController::class, 'handleIncomingWebhook'])->name('webhook.incoming');
+
+// Endpoint API Mahasiswa (Requirement 5: Status Tagihan & Riwayat Transaksi Mahasiswa)
+Route::get('api/mahasiswa/{nim}/tagihan', [MahasiswaController::class, 'apiGetTagihanDanRiwayat'])->name('api.mahasiswa.tagihan');

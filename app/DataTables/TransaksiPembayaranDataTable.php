@@ -105,12 +105,17 @@ class TransaksiPembayaranDataTable extends DataTable
     {
         $query = $model->newQuery()->with(['institusi', 'tagihanUkt.mahasiswa'])->latest('id');
 
-        // Jika mahasiswa, batasi hanya transaksi tagihan miliknya
         $user = auth()->user();
+
+        // 1. Jika mahasiswa, batasi hanya transaksi miliknya
         if ($user && $user->role === 'mahasiswa' && $user->mahasiswa) {
             $query->whereHas('tagihanUkt', function ($q) use ($user) {
                 $q->where('mahasiswa_id', $user->mahasiswa->id);
             });
+        }
+        // 2. Jika admin institusi, batasi hanya transaksi kampusnya
+        elseif ($user && $user->institusi_id) {
+            $query->where('institusi_id', $user->institusi_id);
         }
 
         return $query;

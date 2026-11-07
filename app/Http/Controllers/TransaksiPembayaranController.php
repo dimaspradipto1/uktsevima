@@ -17,17 +17,33 @@ class TransaksiPembayaranController extends Controller
      */
     public function index(TransaksiPembayaranDataTable $dataTable)
     {
+        $user = auth()->user();
+        $trxScope = TransaksiPembayaran::query();
+        $tagihanScope = TagihanUkt::query();
+
+        if ($user && $user->role === 'mahasiswa' && $user->mahasiswa) {
+            $trxScope->whereHas('tagihanUkt', function ($q) use ($user) {
+                $q->where('mahasiswa_id', $user->mahasiswa->id);
+            });
+            $tagihanScope->where('mahasiswa_id', $user->mahasiswa->id);
+            $institusis = Institusi::where('id', $user->mahasiswa->institusi_id)->get();
+        } elseif ($user && $user->institusi_id) {
+            $trxScope->where('institusi_id', $user->institusi_id);
+            $tagihanScope->where('institusi_id', $user->institusi_id);
+            $institusis = Institusi::where('id', $user->institusi_id)->get();
+        } else {
+            $institusis = Institusi::where('status', true)->orderBy('nama_institusi')->get();
+        }
+
         $stats = [
-            'total_transaksi'        => TransaksiPembayaran::count(),
-            'total_nominal_berhasil' => (int) TransaksiPembayaran::where('status', 'berhasil')->sum('nominal_rupiah'),
-            'total_menunggu'         => TransaksiPembayaran::where('status', 'menunggu')->count(),
-            'total_gagal_expired'    => TransaksiPembayaran::whereIn('status', ['gagal', 'kedaluwarsa'])->count(),
+            'total_transaksi'        => (clone $trxScope)->count(),
+            'total_nominal_berhasil' => (int) (clone $trxScope)->where('status', 'berhasil')->sum('nominal_rupiah'),
+            'total_menunggu'         => (clone $trxScope)->where('status', 'menunggu')->count(),
+            'total_gagal_expired'    => (clone $trxScope)->whereIn('status', ['gagal', 'kedaluwarsa'])->count(),
         ];
 
-        $institusis = Institusi::where('status', true)->orderBy('nama_institusi')->get();
-
         // Tagihan UKT yang masih aktif untuk opsi tambah pembayaran
-        $tagihanUkts = TagihanUkt::with(['institusi', 'mahasiswa', 'periodeAkademik'])
+        $tagihanUkts = $tagihanScope->with(['institusi', 'mahasiswa', 'periodeAkademik'])
             ->whereIn('status', ['belum_bayar', 'dicicil'])
             ->latest('id')
             ->get();
@@ -70,6 +86,11 @@ class TransaksiPembayaranController extends Controller
 
         $tagihan = TagihanUkt::with('institusi')->findOrFail($validated['tagihan_ukt_id']);
 
+        $user = auth()->user();
+        if ($user && $user->institusi_id && $tagihan->institusi_id !== $user->institusi_id) {
+            abort(403, 'Akses data institusi lain tidak diizinkan.');
+        }
+
         // Generate Gateway Transaction ID unik per institusi (ERD UQ)
         $kodeInst = $tagihan->institusi->kode_institusi ?? 'INST';
         $gatewayTrxId = 'TRX-' . $kodeInst . '-' . time() . '-' . rand(100, 999);
@@ -102,6 +123,11 @@ class TransaksiPembayaranController extends Controller
      */
     public function show(TransaksiPembayaran $transaksiPembayaran)
     {
+        $user = auth()->user();
+        if ($user && $user->institusi_id && $transaksiPembayaran->institusi_id !== $user->institusi_id) {
+            abort(403, 'Akses data institusi lain tidak diizinkan.');
+        }
+
         $transaksiPembayaran->load(['institusi', 'tagihanUkt.mahasiswa', 'tagihanUkt.periodeAkademik']);
         return view('pages.transaksi_pembayaran.show', compact('transaksiPembayaran'));
     }
@@ -111,6 +137,11 @@ class TransaksiPembayaranController extends Controller
      */
     public function edit(TransaksiPembayaran $transaksiPembayaran)
     {
+        $user = auth()->user();
+        if ($user && $user->institusi_id && $transaksiPembayaran->institusi_id !== $user->institusi_id) {
+            abort(403, 'Akses data institusi lain tidak diizinkan.');
+        }
+
         $transaksiPembayaran->load(['institusi', 'tagihanUkt.mahasiswa']);
         return view('pages.transaksi_pembayaran.edit', compact('transaksiPembayaran'));
     }
@@ -120,6 +151,10 @@ class TransaksiPembayaranController extends Controller
      */
     public function update(Request $request, TransaksiPembayaran $transaksiPembayaran)
     {
+        $user = auth()->user();
+        if ($user && $user->institusi_id && $transaksiPembayaran->institusi_id !== $user->institusi_id) {
+            abort(403, 'Akses data institusi lain tidak diizinkan.');
+        }
         $validated = $request->validate([
             'nominal_rupiah'    => 'required|numeric|min:1000',
             'metode_pembayaran' => 'nullable|string|max:50',
@@ -161,6 +196,11 @@ class TransaksiPembayaranController extends Controller
      */
     public function destroy(TransaksiPembayaran $transaksiPembayaran)
     {
+        $user = auth()->user();
+        if ($user && $user->institusi_id && $transaksiPembayaran->institusi_id !== $user->institusi_id) {
+            abort(403, 'Akses data institusi lain tidak diizinkan.');
+        }
+
         $tagihan = $transaksiPembayaran->tagihanUkt;
 
         DB::transaction(function () use ($transaksiPembayaran, $tagihan) {

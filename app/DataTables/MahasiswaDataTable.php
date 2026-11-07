@@ -73,7 +73,14 @@ class MahasiswaDataTable extends DataTable
      */
     public function query(Mahasiswa $model): QueryBuilder
     {
-        return $model->newQuery()->with(['institusi', 'user'])->latest('id');
+        $query = $model->newQuery()->with(['institusi', 'user'])->latest('id');
+
+        $user = auth()->user();
+        if ($user && $user->institusi_id) {
+            $query->where('institusi_id', $user->institusi_id);
+        }
+
+        return $query;
     }
 
     /**

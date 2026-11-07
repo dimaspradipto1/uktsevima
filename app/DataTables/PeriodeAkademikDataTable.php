@@ -89,7 +89,14 @@ class PeriodeAkademikDataTable extends DataTable
      */
     public function query(PeriodeAkademik $model): QueryBuilder
     {
-        return $model->newQuery()->with('institusi')->latest('id');
+        $query = $model->newQuery()->with('institusi')->latest('id');
+
+        $user = auth()->user();
+        if ($user && $user->institusi_id) {
+            $query->where('institusi_id', $user->institusi_id);
+        }
+
+        return $query;
     }
 
     /**

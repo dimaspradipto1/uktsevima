@@ -49,18 +49,29 @@ class TagihanUktController extends Controller
         }
 
         // 2. Tampilan Admin / Finance
+        $tagihanScope = TagihanUkt::query();
+        $trxScope = TransaksiPembayaran::query();
+
+        if ($user && $user->institusi_id) {
+            $tagihanScope->where('institusi_id', $user->institusi_id);
+            $trxScope->where('institusi_id', $user->institusi_id);
+            $institusis = Institusi::where('id', $user->institusi_id)->get();
+            $periodes = PeriodeAkademik::where('institusi_id', $user->institusi_id)->latest('id')->get();
+            $mahasiswas = Mahasiswa::where('institusi_id', $user->institusi_id)->orderBy('nama_lengkap')->get();
+        } else {
+            $institusis = Institusi::where('status', true)->orderBy('nama_institusi')->get();
+            $periodes = PeriodeAkademik::with('institusi')->latest('id')->get();
+            $mahasiswas = Mahasiswa::with('institusi')->orderBy('nama_lengkap')->get();
+        }
+
         $stats = [
-            'total_tagihan'     => TagihanUkt::count(),
-            'total_nominal'     => (int) TagihanUkt::sum('nominal_tagihan'),
-            'total_terbayar'    => (int) TransaksiPembayaran::where('status', 'berhasil')->sum('nominal_rupiah'),
-            'total_lunas'       => TagihanUkt::where('status', 'lunas')->count(),
-            'total_belum_lunas' => TagihanUkt::whereIn('status', ['belum_bayar', 'dicicil'])->count(),
+            'total_tagihan'     => (clone $tagihanScope)->count(),
+            'total_nominal'     => (int) (clone $tagihanScope)->sum('nominal_tagihan'),
+            'total_terbayar'    => (int) (clone $trxScope)->where('status', 'berhasil')->sum('nominal_rupiah'),
+            'total_lunas'       => (clone $tagihanScope)->where('status', 'lunas')->count(),
+            'total_belum_lunas' => (clone $tagihanScope)->whereIn('status', ['belum_bayar', 'dicicil'])->count(),
         ];
         $stats['sisa_piutang'] = max(0, $stats['total_nominal'] - $stats['total_terbayar']);
-
-        $institusis = Institusi::where('status', true)->orderBy('nama_institusi')->get();
-        $periodes = PeriodeAkademik::with('institusi')->latest('id')->get();
-        $mahasiswas = Mahasiswa::with('institusi')->orderBy('nama_lengkap')->get();
 
         return $dataTable->render('pages.tagihan_ukt.index', compact('stats', 'institusis', 'periodes', 'mahasiswas'));
     }
@@ -97,6 +108,11 @@ class TagihanUktController extends Controller
             'tanggal_jatuh_tempo.required' => 'Tanggal jatuh tempo wajib diisi.',
             'tanggal_jatuh_tempo.after_or_equal' => 'Tanggal jatuh tempo tidak boleh lewat dari hari ini.',
         ]);
+
+        $user = auth()->user();
+        if ($user && $user->institusi_id) {
+            $validated['institusi_id'] = $user->institusi_id;
+        }
 
         // Pengecekan Composite Unique ERD: UQ (institusi_id, mahasiswa_id, periode_akademik_id)
         $isDuplicate = TagihanUkt::where('institusi_id', $validated['institusi_id'])
@@ -140,6 +156,11 @@ class TagihanUktController extends Controller
      */
     public function show(TagihanUkt $tagihanUkt)
     {
+        $user = auth()->user();
+        if ($user && $user->institusi_id && $tagihanUkt->institusi_id !== $user->institusi_id) {
+            abort(403, 'Akses data institusi lain tidak diizinkan.');
+        }
+
         $tagihanUkt->load(['institusi', 'mahasiswa', 'periodeAkademik', 'pembuat', 'transaksiPembayarans' => fn($q) => $q->latest('id')]);
         return view('pages.tagihan_ukt.show', compact('tagihanUkt'));
     }
@@ -149,6 +170,11 @@ class TagihanUktController extends Controller
      */
     public function edit(TagihanUkt $tagihanUkt)
     {
+        $user = auth()->user();
+        if ($user && $user->institusi_id && $tagihanUkt->institusi_id !== $user->institusi_id) {
+            abort(403, 'Akses data institusi lain tidak diizinkan.');
+        }
+
         if ($tagihanUkt->status === 'lunas') {
             Alert::warning('Perhatian', 'Tagihan yang sudah lunas tidak dapat diubah.');
             return redirect()->route('tagihan-ukts.index');
@@ -166,6 +192,11 @@ class TagihanUktController extends Controller
      */
     public function update(Request $request, TagihanUkt $tagihanUkt)
     {
+        $user = auth()->user();
+        if ($user && $user->institusi_id && $tagihanUkt->institusi_id !== $user->institusi_id) {
+            abort(403, 'Akses data institusi lain tidak diizinkan.');
+        }
+
         if ($tagihanUkt->status === 'lunas') {
             Alert::error('Gagal', 'Tagihan yang sudah lunas tidak dapat diubah.');
             return redirect()->route('tagihan-ukts.index');
@@ -205,6 +236,11 @@ class TagihanUktController extends Controller
      */
     public function destroy(TagihanUkt $tagihanUkt)
     {
+        $user = auth()->user();
+        if ($user && $user->institusi_id && $tagihanUkt->institusi_id !== $user->institusi_id) {
+            abort(403, 'Akses data institusi lain tidak diizinkan.');
+        }
+
         if ($tagihanUkt->total_dibayar > 0) {
             Alert::error('Gagal Menghapus', 'Tagihan ini tidak dapat dihapus karena sudah memiliki catatan cicilan/transaksi pembayaran.');
             return redirect()->route('tagihan-ukts.index')->with('error', 'Tagihan ini tidak dapat dihapus karena sudah memiliki catatan cicilan pembayaran.');

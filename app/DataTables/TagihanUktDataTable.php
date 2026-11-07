@@ -125,9 +125,17 @@ class TagihanUktDataTable extends DataTable
      */
     public function query(TagihanUkt $model): QueryBuilder
     {
-        return $model->newQuery()
+        $query = $model->newQuery()
             ->with(['institusi', 'mahasiswa', 'periodeAkademik', 'transaksiPembayarans'])
             ->latest('id');
+
+        // Aturan Multi-Institusi: Jika admin terikat pada satu institusi, batasi datanya
+        $user = auth()->user();
+        if ($user && $user->institusi_id) {
+            $query->where('institusi_id', $user->institusi_id);
+        }
+
+        return $query;
     }
 
     /**

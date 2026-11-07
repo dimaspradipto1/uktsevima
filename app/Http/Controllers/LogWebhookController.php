@@ -206,7 +206,7 @@ class LogWebhookController extends Controller
         $payloadJson = json_decode($rawPayload, true) ?: $request->all();
 
         $kodeInstitusi = $request->header('X-Institusi-Code') ?? ($payloadJson['kode_institusi'] ?? null);
-        $signatureHeader = $request->header('X-Webhook-Signature') ?? ($payloadJson['signature'] ?? null);
+        $signatureHeader = $request->header('X-Signature') ?? $request->header('X-Webhook-Signature') ?? ($payloadJson['signature'] ?? null);
         $gatewayEventId = $request->header('X-Gateway-Event-Id') ?? ($payloadJson['event_id'] ?? ('EVT-' . uniqid()));
         $jenisEvent = $payloadJson['event'] ?? ($payloadJson['jenis_event'] ?? 'payment.success');
 
@@ -259,6 +259,10 @@ class LogWebhookController extends Controller
                 }
             } elseif ($transaksi && $jenisEvent === 'payment.expired') {
                 $transaksi->update(['status' => 'kedaluwarsa']);
+
+                if ($transaksi->tagihanUkt && $transaksi->tagihanUkt->total_dibayar === 0) {
+                    $transaksi->tagihanUkt->update(['status' => 'kadaluarsa']);
+                }
             }
         }
 

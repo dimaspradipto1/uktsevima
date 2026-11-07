@@ -119,7 +119,14 @@ class LogWebhookDataTable extends DataTable
      */
     public function query(LogWebhook $model): QueryBuilder
     {
-        return $model->newQuery()->with(['institusi', 'transaksiPembayaran'])->latest('id');
+        $query = $model->newQuery()->with(['institusi', 'transaksiPembayaran'])->latest('id');
+
+        $user = auth()->user();
+        if ($user && $user->institusi_id) {
+            $query->where('institusi_id', $user->institusi_id);
+        }
+
+        return $query;
     }
 
     /**

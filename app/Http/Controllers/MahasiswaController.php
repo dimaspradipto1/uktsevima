@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\DataTables\MahasiswaDataTable;
 use App\Models\Institusi;
 use App\Models\Mahasiswa;
+use App\Models\TransaksiPembayaran;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
@@ -18,7 +19,12 @@ class MahasiswaController extends Controller
      */
     public function index(MahasiswaDataTable $dataTable)
     {
-        $institusis = Institusi::where('status', true)->orderBy('nama_institusi')->get();
+        $user = auth()->user();
+        if ($user && $user->institusi_id) {
+            $institusis = Institusi::where('id', $user->institusi_id)->get();
+        } else {
+            $institusis = Institusi::where('status', true)->orderBy('nama_institusi')->get();
+        }
 
         // Ambil akun pengguna yang belum terhubung dengan profil mahasiswa manapun
         $availableUsers = User::whereDoesntHave('mahasiswa')
@@ -59,6 +65,11 @@ class MahasiswaController extends Controller
             'nama_lengkap.required'          => 'Nama lengkap mahasiswa wajib diisi.',
             'nama_lengkap.max'               => 'Nama lengkap maksimal 150 karakter.',
         ]);
+
+        $user = auth()->user();
+        if ($user && $user->institusi_id) {
+            $validated['institusi_id'] = $user->institusi_id;
+        }
 
         // Pengecekan Composite Unique Constraint ERD: UQ (institusi_id, nomor_induk_mahasiswa)
         $isNimDuplicate = Mahasiswa::where('institusi_id', $validated['institusi_id'])
@@ -102,6 +113,11 @@ class MahasiswaController extends Controller
      */
     public function edit(Mahasiswa $mahasiswa)
     {
+        $user = auth()->user();
+        if ($user && $user->institusi_id && $mahasiswa->institusi_id !== $user->institusi_id) {
+            abort(403, 'Akses data institusi lain tidak diizinkan.');
+        }
+
         $institusis = Institusi::orderBy('nama_institusi')->get();
 
         // Pengguna yang belum punya profil mahasiswa + akun pengguna mahasiswa saat ini
@@ -118,6 +134,11 @@ class MahasiswaController extends Controller
      */
     public function update(Request $request, Mahasiswa $mahasiswa)
     {
+        $user = auth()->user();
+        if ($user && $user->institusi_id && $mahasiswa->institusi_id !== $user->institusi_id) {
+            abort(403, 'Akses data institusi lain tidak diizinkan.');
+        }
+
         $validated = $request->validate([
             'institusi_id'           => 'required|exists:institusis,id',
             'user_id'                => [
@@ -161,6 +182,11 @@ class MahasiswaController extends Controller
      */
     public function destroy(Mahasiswa $mahasiswa)
     {
+        $user = auth()->user();
+        if ($user && $user->institusi_id && $mahasiswa->institusi_id !== $user->institusi_id) {
+            abort(403, 'Akses data institusi lain tidak diizinkan.');
+        }
+
         // Proteksi jika mahasiswa sudah memiliki riwayat tagihan UKT
         if (Schema::hasColumn('tagihan_ukts', 'mahasiswa_id') && $mahasiswa->tagihanUkts()->exists()) {
             Alert::error('Gagal Menghapus', 'Data mahasiswa ini tidak dapat dihapus karena sudah memiliki riwayat Tagihan UKT.');
@@ -171,5 +197,76 @@ class MahasiswaController extends Controller
 
         Alert::success('Berhasil', 'Data mahasiswa berhasil dihapus.');
         return redirect()->route('mahasiswas.index')->with('success', 'Data mahasiswa berhasil dihapus.');
+    }
+
+    /**
+     * Endpoint API (Requirement No. 5):
+     * Melihat status tagihan dan riwayat transaksi seorang mahasiswa berdasarkan NIM.
+     */
+    public function apiGetTagihanDanRiwayat(Request $request, string $nim)
+    {
+        $query = Mahasiswa::with(['institusi', 'tagihanUkts.periodeAkademik'])
+            ->where('nomor_induk_mahasiswa', $nim);
+
+        if ($request->has('kode_institusi')) {
+            $query->whereHas('institusi', function ($q) use ($request) {
+                $q->where('kode_institusi', $request->query('kode_institusi'));
+            });
+        }
+
+        $mahasiswa = $query->first();
+
+        if (!$mahasiswa) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Mahasiswa dengan NIM ' . $nim . ' tidak ditemukan.',
+            ], 404);
+        }
+
+        $tagihanAktif = $mahasiswa->tagihanUkts()
+            ->whereIn('status', ['belum_bayar', 'dicicil'])
+            ->latest('id')
+            ->first();
+
+        $riwayatTransaksi = TransaksiPembayaran::whereHas('tagihanUkt', function ($q) use ($mahasiswa) {
+            $q->where('mahasiswa_id', $mahasiswa->id);
+        })->latest('id')->get();
+
+        return response()->json([
+            'status' => 'success',
+            'data'   => [
+                'mahasiswa' => [
+                    'nim'            => $mahasiswa->nomor_induk_mahasiswa,
+                    'nama'           => $mahasiswa->nama_lengkap,
+                    'institusi'      => $mahasiswa->institusi->nama_institusi ?? '-',
+                    'kode_institusi' => $mahasiswa->institusi->kode_institusi ?? '-',
+                ],
+                'tagihan_aktif' => $tagihanAktif ? [
+                    'id'            => $tagihanAktif->id,
+                    'nomor_tagihan' => $tagihanAktif->nomor_tagihan,
+                    'periode'       => ($tagihanAktif->periodeAkademik->tahun_akademik ?? '-') . ' (' . ($tagihanAktif->periodeAkademik->semester ?? '-') . ')',
+                    'nominal'       => $tagihanAktif->nominal_tagihan,
+                    'total_dibayar' => $tagihanAktif->total_dibayar,
+                    'sisa_tagihan'  => $tagihanAktif->sisa_tagihan,
+                    'status'        => $tagihanAktif->status,
+                    'jatuh_tempo'   => $tagihanAktif->tanggal_jatuh_tempo ? $tagihanAktif->tanggal_jatuh_tempo->format('Y-m-d') : null,
+                ] : null,
+                'riwayat_tagihan' => $mahasiswa->tagihanUkts->map(fn($t) => [
+                    'nomor_tagihan' => $t->nomor_tagihan,
+                    'periode'       => ($t->periodeAkademik->tahun_akademik ?? '-') . ' (' . ($t->periodeAkademik->semester ?? '-') . ')',
+                    'nominal'       => $t->nominal_tagihan,
+                    'total_dibayar' => $t->total_dibayar,
+                    'sisa_tagihan'  => $t->sisa_tagihan,
+                    'status'        => $t->status,
+                ]),
+                'riwayat_transaksi' => $riwayatTransaksi->map(fn($trx) => [
+                    'gateway_transaction_id' => $trx->gateway_transaction_id,
+                    'nominal'                => $trx->nominal_rupiah,
+                    'metode'                 => $trx->metode_pembayaran,
+                    'status'                 => $trx->status,
+                    'dibayar_pada'           => $trx->dibayar_pada ? $trx->dibayar_pada->format('Y-m-d H:i:s') : null,
+                ]),
+            ],
+        ]);
     }
 }
