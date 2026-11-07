@@ -194,3 +194,4 @@ class MultiTenantIsolationTest extends TestCase
         $response->assertStatus(401);
     }
 }
+

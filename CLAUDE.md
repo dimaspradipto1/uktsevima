@@ -1,7 +1,7 @@
-# Project: UKTHub Multi-Kampus (SEVIMA M2 Project)
+# Project: uktsevima (SEVIMA M2 Project)
 
 ## Deskripsi singkat
-UKTHub Multi-Kampus adalah sistem manajemen tagihan dan pembayaran Uang Kuliah Tunggal (UKT) multi-institusi / multi-tenant berbasis web fullstack dengan integrasi webhook payment gateway (HMAC-SHA256 signature verification), portal admin keuangan, dan portal mahasiswa.
+uktsevima adalah sistem manajemen tagihan dan pembayaran Uang Kuliah Tunggal (UKT) multi-institusi / multi-tenant berbasis web fullstack dengan integrasi webhook payment gateway (HMAC-SHA256 signature verification), portal admin keuangan, dan portal mahasiswa.
 
 ## Stack dan cara menjalankan
 - **Framework:** Laravel 13 (PHP 8.4)
@@ -67,3 +67,4 @@ UKTHub Multi-Kampus adalah sistem manajemen tagihan dan pembayaran Uang Kuliah T
 3. Jangan menghapus atau mengubah tabel transaksi tanpa memastikan mekanisme sinkronisasi status induk tagihan.
 4. Jangan menggunakan integrasi Livewire karena dilarang dalam ketentuan teknis SEVIMA.
 5. Jangan mengubah skema database di luar spesifikasi diagram ERD SEVIMA.
+

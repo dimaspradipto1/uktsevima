@@ -1,4 +1,4 @@
-# UKTHub Multi-Kampus — SEVIMA Project M2: Integrasi Pembayaran UKT via Webhook
+# uktsevima — SEVIMA Project M2: Integrasi Pembayaran UKT via Webhook
 
 Aplikasi web fullstack multi-tenant terpadu untuk pengelolaan tagihan Uang Kuliah Tunggal (UKT) antar-institusi kampus dengan verifikasi notifikasi webhook payment gateway berbasis **HMAC-SHA256**, portal admin keuangan, dan portal mahasiswa.
 
