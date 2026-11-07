@@ -183,3 +183,4 @@ class LogWebhookTest extends TestCase
         $this->assertDatabaseMissing('log_webhooks', ['id' => $log->id]);
     }
 }
+
